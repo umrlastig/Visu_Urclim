@@ -1,0 +1,1932 @@
+<!doctype html>
+<!-- Pour lancer serveur python : aller dans anaconda prompt, cd ...le bon dossier, python -m http.server
+	et ensuite aller sur localhost:8000 -->
+<html>
+	<head>
+		<title>Interface visualisation</title>
+		<meta charset="utf-8">
+
+	<!--<script src="js/three.js"></script>-->
+	<!--<script type="module" src="js/three.module.js"></script>-->
+	<script src="js/earcut.js"></script>
+	<!--<script type="module" src="js/OrbitControls.js"></script>-->
+	<!--
+		ANCIENNE VERSION DE D3 JS ?
+		<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+	-->
+	<script src="https://d3js.org/d3.v4.js"></script>
+	<script src="js/jquery.js" charset="utf-8"></script>
+
+	<!--
+		ci dessous pour double slider jquery ui
+	-->
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+	<!--
+		ci dessus pour double slider jquery ui
+	-->
+
+	<!-- <script src="js/add_climate_data_functions.js" charset="utf-8"></script> -->
+	<!--<script src="js/load_data_functions.js" charset="utf-8"></script> -->
+	<!--<script src="js/color_functions.js" charset="utf-8"></script> -->
+	<!--<script src="js/buildings_functions.js" charset="utf-8"></script> -->
+	<!--<script src="js/2D_vertical_planes_functions.js" charset="utf-8"></script> -->
+
+	<link	href="css/main_2.css" rel="stylesheet"/>
+
+	</head>
+<body>
+		<div id='main'>
+		<span id="open_menu">
+			<svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg" >
+			<path d="M4 15h16v-2H4v2zm0 4h16v-2H4v2zm0-8h16V9H4v2zm0-6v2h16V5H4z" fill="#fff"></path></svg>
+		</span>
+		<div id="container"></div>
+		<div id="menu_container">
+			<div id="hide_menu">&times;</div>
+			<div id="general_control_container">
+				<div id="choose_data_label" class="general_control_container_div" >Choose data </div>
+				<div id="choose_data_container">
+					<!-- On accède aux valeurs de ces input avec .value
+					N'acceptent actuellement que des .csv -->
+					<div class="choice_container">
+						<label for="data_o">Choose a data _O :</label>
+						<input type="file" id="data_o" accept=".csv">
+					</div>
+					<div class="choice_container">
+						<label for="data_u">Choose a data _U :</label>
+						<input type="file" id="data_u" accept=".csv">
+					</div>
+					<div class="choice_container">
+						<label for="data_v">Choose a data _V :</label>
+						<input type="file" id="data_v" accept=".csv">
+					</div>
+					<div class="choice_container">
+						<label for="data_road">Choose a road data :</label>
+						<input type="file" id="data_road" accept=".geojson">
+					</div>
+					<div class="choice_container">
+						<label for="data_build">Choose a building data :</label>
+						<input type="file" id="data_build" accept=".geojson">
+					</div>
+					<div id="load_data_container">
+						<select id="load_dataset">
+							<option value="" selected disabled hidden>Choose here</option>
+							<option value="paris_beaubourg">Beaubourg</option>
+							<option value="paris_centre">Centre</option>
+							<option value="centre_small">Centre small</option>
+							<option value="centre_medium">Centre medium</option>
+							<option value="paris_V3">V3</option>
+						</select>
+						<button id ="load_data"> Load data </button>
+					</div>
+					<div id ="data_loaded"></div>
+				</div>
+				<div id="data_control_label" class="general_control_container_div">Data</div>
+				<div id="data_control_container">
+					<div class="data_control_container_inside">
+
+						<div	id="point_control_container_sub" class="control_container_sub">
+							<div id="SBL_values" class="values_header">TEB</div>
+							<div id="Meso_values" class="values_header">Meso_NH</div>
+						</div>
+						<div id="values_selection_sbl"></div>
+						<div id="values_selection_meso"></div>
+						<div id="data_block"></div>
+					</div>
+				</div>
+				<div id="graphic_control_label" class="general_control_container_div">Graphic</div>
+				<div id="graphic_control_container">
+					<div class="interface_labels">Color</div>
+					<div id="color_data_control">
+						<select id="color_data_control_input">
+							<option value="temp-fcm" selected>Temperature represented by color - fixed cm</option>
+							<option value="level">Level represented by color</option>
+							<option value="temp">Temperature represented by color</option>
+						</select>
+						<div id="color_temp_control">
+							<div id="temp_control">
+								diff_temp
+								<div id="temp_control_input">
+									<input type="text" id="temp_min_input" name="name" value="20">
+									<input type="text" id="temp_max_input" name="name" value="30">
+								</div>
+							</div>
+							<!--<div id="color_class_control">
+								<select id="color_class_control_input">
+									<option value="effectifs_egaux" >Effectifs égaux</option>
+									<option value="ecarts_egaux" selected>Intervalles égaux</option>
+								</select>
+							</div>-->
+							<div id="temp_histogram_content">
+							</div>
+						</div>
+						<div id="color_control">
+							<!--<div id="color_control_input" value ="">
+							</div>-->
+						</div>
+					</div>
+					<div class="interface_labels">horizontal planes</div>
+					<div id="transparency_control">
+						<div id="transparency_control_label">transparency_factor: 1</div>
+						<div id="transparency_control_input">
+
+							<div class="slider" id="transparency_slider"></div>
+						</div>
+					</div>
+					<div class="interface_labels">vertical planes</div>
+					<div id="vertical_plane_transparency_control">
+						<div id="vertical_plane_transparency_label">vertical_plane_transparency_factor: 1</div>
+						<div id="vertical_plane_transparency_control_input">
+
+							<div class="slider" id="vertical_plane_transparency_slider"></div>
+						</div>
+					</div>
+					<div class="interface_labels">point cloud</div>
+					<div id="container_nuage_points">Type de points :</div>
+					<div id="points_transparency_control">
+						<div id="points_transparency_control_label">points_transparency_factor: 1</div>
+						<div id="points_transparency_control_input">
+
+							<div class="slider" id="points_transparency_slider"></div>
+						</div>
+					</div>
+					<div class="interface_labels">3D point cloud</div>
+					<div id="size_control" class='mono_slider_container'>
+						<div id="size_control_label">Size: </div>
+						<input type="text" id="size_text_input" class ="mono_slider_input" name="name"/>
+						<div class="slider mono_slider" id="size_slider"></div>
+
+					</div>
+					<div id="relative_size_control">
+						<div id="relative_size_factor_control_label">relative_size_factor: 0</div>
+						<div id="relative_size_control_input">
+
+							<div class="slider" id="relative_size_factor_size_slider"></div>
+						</div>
+					</div>
+					<div id="density_control" class='mono_slider_container'>
+						<div id="density_control_label">general density: </div>
+						<div id="gnl_density">
+							<input type="text" id="density_text_input" class ="mono_slider_input" name="name"/>
+							<div class="slider mono_slider" id="density_slider"></div>
+						</div>
+					</div>
+					<div id="relative_density_factor_control">
+						<div id="relative_density_factor_control_label">relative_density_factor: 0</div>
+						<div id="relative_density_factor_control_input">
+							<div class="slider" id="relative_density_factor_slider"></div>
+						</div>
+					</div>
+					<div class="interface_labels">2D point cloud</div>
+					<div id="number_of_points_real_plane">
+						<div id="number_of_points_real_plane_label">number_of_points_real_plane: 10</div>
+						<div id="number_of_points_real_plane_input">
+							<div class="slider" id="number_of_points_real_plane_slider"></div>
+						</div>
+					</div>
+					<div class="interface_labels">Buildings</div>
+					<div id="buildings_transparency">
+						<div id="buildings_presence_label">Show buildings</div>
+						<input type="checkbox" id="buildings_presence_input" checked>
+						<div id="buildings_print_presence_label">Show buildings print</div>
+						<input type="checkbox" id="buildings_print_presence_input" checked>
+						<div id="buildings_transparency_label">buildings_transparency: 1</div>
+						<div id="buildings_transparency_input">
+							<div class="slider" id="buildings_transparency_slider"></div>
+						</div>
+					</div>
+					<div id="type_bati_div">
+						<select id="type_bati" name="type_bati" form="type_bati">
+						<option value="autre" selected>autre</option>
+					<option value="lcz_1">Main LCZ type</option>
+					<option value="lcz_2">Secondary LCZ type</option>
+					<option value="typo_maj">Typologie majoritaire dans l'USR</option>
+					<option value="typo_second">Typologie secondaire dans l'USR</option>
+					<option value="build_dens">densité surfacique de bâti</option>
+					<option value="hydro_dens">densité surfacique de zone en eau</option>
+					<option value="veget_dens">densité surfacique de zone de végétation</option>
+					<option value="road_dens">densité surfacique de route</option>
+					<option value="ba">pourcentage de "Bâtiment d'Activité" dans l'USR</option>
+					<option value="bgh">pourcentage de "Bâtiment de Grande Hauteur" dans l'USR</option>
+					<option value="icif">pourcentage d' "Immeuble Continu sur Ilôt Fermé" dans l'USR</option>
+					<option value="icio">pourcentage d' "Immeuble Continu sur Ilôt Ouvert" dans l'USR</option>
+					<option value="id">pourcentage d' "Immeuble Discontinu" dans l'USR</option>
+					<option value="local">pourcentage de "Local" dans l'USR</option>
+					<option value="pcif">pourcentage de "Pavillon Continu sur Ilôt Fermé" dans l'USR</option>
+					<option value="pcio">pourcentage de "Pavillon Continu sur Ilôt Ouvert" dans l'USR</option>
+					<option value="pd">pourcentage de "Pavillon Discontinu" dans l'USR</option>
+					<option value="psc">pourcentage de "Pavillon Semi-Discontinu" dans l'USR</option>
+					</select>
+					</div>
+					
+					<!-- <div id="h_control">
+						<div id="h_control_label">h_factor : 1</div>
+						<div id="h_control_slider">
+							<div class="slider" id="h_slider"></div>
+						</div>
+					</div>-->
+				</div>
+				<div id="animation_control_label" class="general_control_container_div">Animation</div>
+				<div id="animation_control_container">
+					<div id="animation_control">
+						<div><input type="checkbox" class="animation_ckbx_class" id="animation_ckbx">Animation</div>
+					</div>
+					<div id="animation_type">
+					<input type="radio" id="animation_type_temp"
+					name="temp" value="temp" class="animation_type_checkbox" checked>
+					<label for="animation_type_temp">temp</label>
+
+					<input type="radio" id="animation_type_z"
+					name="z" value="z" class="animation_type_checkbox">
+					<label for="animation_type_z">z</label>
+
+					<input type="radio" id="animation_type_x"
+					name="x" value="x" class="animation_type_checkbox">
+					<label for="animation_type_x">x</label>
+
+					<input type="radio" id="animation_type_y"
+					name="y" value="y" class="animation_type_checkbox">
+					<label for="animation_type_y">y</label>
+					</div>
+					<div id="animation_speed_control_label">animation_speed_factor: 0.01</div>
+					<div id="animation_speed_control_input">
+						<div class="slider" id="animation_speed_slider"></div>
+					</div>
+				</div>
+				<div id="filter_control_label" class="general_control_container_div">Filters</div>
+				<div id="filter_control_container">
+					<div id="temp-double-slider">
+						<div><input type="checkbox" class="filter_ckbx_class" id="temp_filter_ckbx">Filtering temperature</div>
+						<p>
+							<label for="temperatures">Temperatures :</label>
+							<input type="text" id="temperatures-label" readonly style="border:0; color:#361bd3; font-weight:bold;">
+						</p>
+
+						<div id="temp-slider-range"></div>
+
+					</div>
+					<div id="z-double-slider">
+						<div><input type="checkbox" class="filter_ckbx_class" id="z_filter_ckbx">Filtering Z</div>
+						<p>
+							<label for="z-slider">Z control :</label>
+							<input type="text" id="z-slider-label" readonly style="border:0; color:#361bd3; font-weight:bold;">
+						</p>
+
+						<div id="z-slider-range"></div>
+
+					</div>
+					<div id="h-double-slider">
+						<div><input type="checkbox" class="filter_ckbx_class" id="h_filter_ckbx">Filtering H</div>
+						<p>
+							<label for="h-slider">H control :</label>
+							<input type="text" id="h-slider-label" readonly style="border:0; color:#361bd3; font-weight:bold;">
+						</p>
+
+						<div id="h-slider-range"></div>
+
+					</div>
+					<div id="x-double-slider">
+						<div><input type="checkbox" class="filter_ckbx_class" id="x_filter_ckbx">Filtering X</div>
+						<p>
+							<label for="x-slider">X control :</label>
+							<input type="text" id="x-slider-label" readonly style="border:0; color:#361bd3; font-weight:bold;">
+						</p>
+
+						<div id="x-slider-range"></div>
+
+					</div>
+					<div id="y-double-slider">
+						<div><input type="checkbox" class="filter_ckbx_class" id="y_filter_ckbx">Filtering Y</div>
+						<p>
+							<label for="y-slider">Y control :</label>
+							<input type="text" id="y-slider-label" readonly style="border:0; color:#361bd3; font-weight:bold;">
+						</p>
+
+						<div id="y-slider-range"></div>
+
+					</div>
+
+
+				</div>
+				<div id="choose_params_label" class="general_control_container_div" > Configuration </div>
+				<div id="choose_params_container">
+					<div class="sauvegarde_params">
+						<input type="text" id="button_file_text" placeholder="Nommez votre sauvegarde"/>
+						<input type="button" id="button_file" value="Sauver configuration actuelle"/>
+					</div>
+					<div class="sauvegarde_params" id="load_params">
+						<div>Charger une configuration :</div>
+						<input type="file" id="button_load_file" accept=".txt" />
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<!-- Div liste couleur position absolute-->
+	<div id='color_list_absolute'></div>
+
+
+
+	<script type="x-shader/x-vertex" id="vertexshader_fix_3D_points">
+		precision highp float;
+		precision mediump sampler3D;
+		uniform float x_factor_min;
+		uniform float x_factor_max;
+		uniform float y_factor_min;
+		uniform float y_factor_max;
+		uniform float z_factor_min;
+		uniform float z_factor_max;
+		uniform float h_factor_min;
+		uniform float h_factor_max;
+		uniform float temp_factor_min;
+		uniform float temp_factor_max;
+		uniform float regularSize;
+		uniform float relativeSizeFactor;
+		uniform vec3 u_size;
+		uniform vec2 u_clim;
+		uniform sampler2D zs_data;
+		uniform sampler3D u_data;
+		uniform sampler3D meso_limit;
+		uniform sampler3D teb_limit;
+		uniform float x_min;
+		uniform float x_max;
+		uniform float y_min;
+		uniform float y_max;
+		
+		uniform float cst_X;
+		uniform float cst_Y;
+		uniform float cst_Z;
+		uniform float zs;
+		
+		uniform bool temp_filter;
+		uniform bool z_filter;
+		uniform bool h_filter;
+		uniform bool x_filter;
+		uniform bool y_filter;
+		varying float to_discard;
+		
+		uniform int active_color_control;
+		
+
+		attribute float x_position;
+		attribute float y_position;
+		attribute float z_position;
+		attribute float h_position;
+		attribute float customtransparency;
+		attribute float custompercentage;
+		attribute float voxel_level;
+		varying float voxel_point_level;
+		varying vec3 v_position;
+		varying vec3 voxel_position;
+		varying float transparency;
+		varying float tempPercentage;
+		
+		varying float voxel_position_z_1;
+		
+		varying float temp_val;
+
+		float sample1(vec3 texcoords) {
+			/* Sample float value from a 3D texture. Assumes intensity data. */
+			return texture(u_data, texcoords.xyz).r;
+		}
+
+		void main() {
+			v_position = position;
+
+			float voxel_position_x = ((v_position[0]/cst_X) - x_min)/(x_max - x_min)*u_size[0];
+			float voxel_position_y = u_size[1]-(-(v_position[2]/cst_Y) - y_min)/(y_max - y_min)*u_size[1];
+			float voxel_position_z = 0.0;
+			vec2 voxel_xy = vec2(voxel_position_x,voxel_position_y);
+			float new_zs = texture2D(zs_data, (voxel_xy/vec2(u_size[0],u_size[1]))).r;
+
+			voxel_point_level = voxel_level;
+			
+			if(voxel_level < 7.0){
+			    
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],7);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,0.0);
+					sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+					
+					if((sample3D_val)*cst_Z > v_position[1]){
+						voxel_position_z = 0.0;
+					} else {
+						for(int i=1; i< 7; i++){
+							sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+							vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+							sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+							float sample3D_val_2 = texture(teb_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+							if((sample3D_val)*cst_Z > v_position[1]){
+								float z_min = sample3D_val;
+								float z_max = sample3D_val_2;
+								voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0;
+								break;
+							}
+						}
+					}
+				} else {
+					
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],33);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,1.0);
+					sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+				
+					if(sample3D_val*cst_Z > v_position[1]){
+							voxel_position_z = 6.0;
+						} else {
+							for(int i=2; i< 32; i++){
+								sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+								vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+								sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+								float sample3D_val_2 = texture(meso_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+								if(sample3D_val*cst_Z > v_position[1]){
+									float z_min = sample3D_val;
+									float z_max = sample3D_val_2;
+									voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0 + 5.0;
+									break;
+								}
+							}
+						}
+				}
+					
+			voxel_position = vec3(voxel_position_x,voxel_position_y,voxel_position_z);
+
+			voxel_position_z_1 = voxel_position_z;
+			
+			float val = sample1(voxel_position/u_size);
+			temp_val = val;
+
+			
+			if(active_color_control == 0){
+				tempPercentage = 0.5;
+			} else if(active_color_control == 1){
+				if (val<u_clim[0]) {
+					tempPercentage = 0.0;
+				} else if(val> u_clim[1]) {
+					tempPercentage = 1.0;
+				} else {
+					tempPercentage = (val - u_clim[0])/(u_clim[1] - u_clim[0]);
+					if (tempPercentage < 0.0) {
+						tempPercentage = 0.0;
+					} else if (tempPercentage > 1.0) {
+						tempPercentage = 1.0;
+					}
+				}
+			} else if(active_color_control == 2){
+				tempPercentage = (val - 297.92)/(300.8 - 297.92);
+				if (tempPercentage < 0.0) {
+					tempPercentage = 0.0;
+				} else if (tempPercentage > 1.0) {
+					tempPercentage = 1.0;
+				}
+			}
+			
+
+			float sizeShader;
+			float addFactor;
+			float basicSize = 10000.0;
+			if (tempPercentage == 0.5 || relativeSizeFactor == 1.0) {
+				sizeShader = basicSize;
+			} else if (relativeSizeFactor < 1.0) {
+				addFactor = 1.0-relativeSizeFactor;
+				sizeShader = (tempPercentage < 0.5) ? basicSize + (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize - (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			} else if (relativeSizeFactor > 1.0) {
+				addFactor = relativeSizeFactor - 1.0;
+				sizeShader = (tempPercentage < 0.5) ? basicSize - (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize + (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			}
+
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			
+			to_discard = 0.0;
+			if(temp_filter ==  true){
+				if(tempPercentage < temp_factor_min || tempPercentage > temp_factor_max || val < u_clim[0] ||  val > u_clim[1]){
+					to_discard = 1.0;
+				}
+			}
+			if(z_filter ==  true){
+				if(z_position < z_factor_min || z_position > z_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(h_filter ==  true){
+				if(h_position < h_factor_min || h_position > h_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(x_filter ==  true){
+				if(x_position < x_factor_min || x_position > x_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(y_filter ==  true){
+				if(y_position < y_factor_min || y_position > y_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			
+			
+			//if(custompercentage > temp_factor_min && custompercentage < temp_factor_max && x_position > x_factor_min && x_position < x_factor_max && y_position > y_factor_min && y_position < y_factor_max && z_position > z_factor_min && z_position < z_factor_max && h_position > h_factor_min && h_position < h_factor_max){
+				gl_PointSize = regularSize* sizeShader * ( 1.0 / -mvPosition.z );
+			//} else {
+			//	gl_PointSize = 0.0;
+			//}
+
+			transparency = customtransparency;
+			gl_Position = projectionMatrix * mvPosition;
+
+
+
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentshader_3D_points">
+		precision highp float;
+		precision mediump sampler3D;
+
+		uniform sampler2D u_cmdata;
+		uniform sampler2D pointTexture;
+		uniform vec3 u_size;
+		uniform int active_color_control;
+
+		varying vec3 voxel_position;
+		
+		varying float voxel_point_level;
+		
+		varying float temp_val;
+		
+		varying float voxel_position_z_1;
+
+		varying float transparency;
+		varying float tempPercentage;
+		
+		varying float to_discard;
+
+
+		void main() {
+		
+			if(to_discard > 0.0){
+				discard;
+			}
+
+			if(active_color_control == 1){
+				if(tempPercentage == -1.0){
+				gl_FragColor = vec4(0.0,0.0,0.0,0.0);
+			
+				} else{
+					gl_FragColor = texture2D(u_cmdata, vec2(tempPercentage, 0.5));
+				}
+			} else if(active_color_control == 2){
+					float newval;
+					if(temp_val<300.8 && temp_val >= 300.02){
+						newval = 5.5/6.0;
+					} else if(temp_val<300.02 && temp_val >= 299.64){
+						newval = 4.5/6.0;
+					} else if(temp_val<299.64 && temp_val >= 299.36){
+						newval = 3.5/6.0;
+					} else if(temp_val<299.36 && temp_val >= 298.98){
+						newval = 2.5/6.0;
+					} else if(temp_val<298.98 && temp_val >= 298.40){
+						newval = 1.5/6.0;
+					} else if(temp_val<298.40 && temp_val >= 297.92){
+						newval = 0.5/6.0;
+					}
+					gl_FragColor = texture2D(u_cmdata, vec2(newval, 0.5));
+				
+				} else {
+			
+				//float val = fract((float(int(voxel_position[2]))+0.5)/(u_size[2]/7.0));
+				//float val = mod((float(int(voxel_position[2]))+0.5),6.0)/6.0;
+				//float val = mod((voxel_point_level-0.5),6.0)/6.0;
+				float val = (6.0-mod((voxel_point_level-0.5),6.0))/6.0;
+				
+				gl_FragColor = texture2D(u_cmdata, vec2(val, 0.5));
+				
+				//gl_FragColor = vec4(fract(voxel_position[2]),0.0,0.0,1.0);
+			
+			}
+
+			vec4 texture4 = texture2D( pointTexture, gl_PointCoord );
+			if(texture4.a < 0.8){
+				discard;
+			}
+			
+			gl_FragColor = vec4(gl_FragColor[0],gl_FragColor[1],gl_FragColor[2],transparency);
+			
+			//gl_FragColor = vec4(float(int(voxel_position_z_1))/6.0,0.0,0.0,transparency);
+			
+			
+			gl_FragColor = gl_FragColor * texture4;
+
+		}
+	</script>
+
+	<script type="x-shader/x-vertex" id="vertexshader_fix_3D_anim_temp">
+		precision highp float;
+		precision mediump sampler3D;
+		uniform float x_factor_min;
+		uniform float x_factor_max;
+		uniform float y_factor_min;
+		uniform float y_factor_max;
+		uniform float z_factor_min;
+		uniform float z_factor_max;
+		uniform float h_factor_min;
+		uniform float h_factor_max;
+		uniform float temp_factor_min;
+		uniform float temp_factor_max;
+		uniform float regularSize;
+		uniform float relativeSizeFactor;
+		uniform vec3 u_size;
+		uniform vec2 u_clim;
+		uniform sampler2D zs_data;
+		uniform sampler3D u_data;
+		uniform float x_min;
+		uniform float x_max;
+		uniform float y_min;
+		uniform float y_max;
+		uniform float mesolimit[38];
+		uniform float cst_X;
+		uniform float cst_Y;
+		uniform float cst_Z;
+		uniform float zs;
+		uniform float u_time;
+		
+		uniform bool temp_filter;
+		uniform bool z_filter;
+		uniform bool h_filter;
+		uniform bool x_filter;
+		uniform bool y_filter;
+		varying float to_discard;
+		
+		varying float voxel_point_level;
+		
+		uniform sampler3D meso_limit;
+		uniform sampler3D teb_limit;
+		
+		uniform int active_color_control;
+		
+		attribute float x_position;
+		attribute float y_position;
+		attribute float z_position;
+		attribute float h_position;
+		attribute float customtransparency;
+		attribute float custompercentage;
+		attribute float voxel_level;
+		varying vec3 voxel_position;
+		varying vec3 v_position;
+		varying float transparency;
+		varying float tempPercentage;
+		
+		varying float temp_val;
+
+		float sample1(vec3 texcoords) {
+			/* Sample float value from a 3D texture. Assumes intensity data. */
+			return texture(u_data, texcoords.xyz).r;
+		}
+
+		void main() {
+			v_position = position;
+
+			float voxel_position_x = ((v_position[0]/cst_X) - x_min)/(x_max - x_min)*u_size[0];
+			float voxel_position_y = u_size[1]-(-(v_position[2]/cst_Y) - y_min)/(y_max - y_min)*u_size[1];
+			float voxel_position_z = 0.0;
+			vec2 voxel_xy = vec2(voxel_position_x,voxel_position_y);
+			float new_zs = texture2D(zs_data, (voxel_xy/vec2(u_size[0],u_size[1]))).r;
+			
+			voxel_point_level = voxel_level;
+			
+			if(voxel_level < 7.0){
+			    
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],7);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,0.0);
+					sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+					
+					if((sample3D_val)*cst_Z > v_position[1]){
+						voxel_position_z = 0.0;
+					} else {
+						for(int i=1; i< 7; i++){
+							sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+							vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+							sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+							float sample3D_val_2 = texture(teb_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+							if((sample3D_val)*cst_Z > v_position[1]){
+								float z_min = sample3D_val;
+								float z_max = sample3D_val_2;
+								voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0;
+								break;
+							}
+						}
+					}
+				} else {
+					
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],33);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,1.0);
+					sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+				
+					if(sample3D_val*cst_Z > v_position[1]){
+							voxel_position_z = 6.0;
+						} else {
+							for(int i=2; i< 32; i++){
+								sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+								vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+								sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+								float sample3D_val_2 = texture(meso_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+								if(sample3D_val*cst_Z > v_position[1]){
+									float z_min = sample3D_val;
+									float z_max = sample3D_val_2;
+									voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0 + 5.0;
+									break;
+								}
+							}
+						}
+				}
+
+			voxel_position = vec3(voxel_position_x,voxel_position_y,voxel_position_z);
+
+			float val = sample1(voxel_position/u_size);
+			
+			temp_val = val;
+
+			if(active_color_control == 0){
+				tempPercentage = 0.5;
+			} else if(active_color_control == 1){
+				if (val<u_clim[0] || val> u_clim[1]) {
+					tempPercentage = -1.0;
+				} else {
+					tempPercentage = (val - u_clim[0])/(u_clim[1] - u_clim[0]);
+					if (tempPercentage < 0.0) {
+						tempPercentage = 0.0;
+					} else if (tempPercentage > 1.0) {
+						tempPercentage = 1.0;
+					}
+				}
+			} else if(active_color_control == 2){
+				tempPercentage = (val - 297.92)/(300.8 - 297.92);
+				if (tempPercentage < 0.0) {
+					tempPercentage = 0.0;
+				} else if (tempPercentage > 1.0) {
+					tempPercentage = 1.0;
+				}
+			}
+
+			float sizeShader;
+			float addFactor;
+			float basicSize = 10000.0;
+			if (tempPercentage == 0.5 || relativeSizeFactor == 1.0) {
+				sizeShader = basicSize;
+			} else if (relativeSizeFactor < 1.0) {
+				addFactor = 1.0-relativeSizeFactor;
+				sizeShader = (tempPercentage < 0.5) ? basicSize + (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize - (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			} else if (relativeSizeFactor > 1.0) {
+				addFactor = relativeSizeFactor - 1.0;
+				sizeShader = (tempPercentage < 0.5) ? basicSize - (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize + (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			}
+
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			//if(custompercentage > temp_factor_min && custompercentage < temp_factor_max && x_position > x_factor_min && x_position < x_factor_max && y_position > y_factor_min && y_position < y_factor_max && z_position > z_factor_min && z_position < z_factor_max && h_position > h_factor_min && h_position < h_factor_max){
+			to_discard = 0.0;
+			if(temp_filter ==  true){
+				if(tempPercentage < temp_factor_min || tempPercentage > temp_factor_max || val < u_clim[0] ||  val > u_clim[1]){
+					to_discard = 1.0;
+				}
+			}
+			if(z_filter ==  true){
+				if(z_position < z_factor_min || z_position > z_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(h_filter ==  true){
+				if(h_position < h_factor_min || h_position > h_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(x_filter ==  true){
+				if(x_position < x_factor_min || x_position > x_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(y_filter ==  true){
+				if(y_position < y_factor_min || y_position > y_factor_max){
+					to_discard = 1.0;
+				}
+			}
+					if(abs(sin(u_time + tempPercentage*3.14159265359)) > 0.9){
+						if(abs(sin(u_time + tempPercentage*3.14159265359)) > 0.95){
+							gl_PointSize = regularSize*sizeShader * ( 1.0 / -mvPosition.z );
+						} else {
+							gl_PointSize = ((abs(sin(u_time + tempPercentage*3.14159265359)) - 0.9)/(0.95 - 0.9))*abs(sin(u_time + tempPercentage*3.14159265359))*regularSize*sizeShader * ( 1.0 / -mvPosition.z );
+						}
+					} else {
+						//gl_PointSize = 0.0;
+						to_discard = 1.0;
+					}
+				//} else {
+						//gl_PointSize = 0.0;
+				//}
+
+			transparency = customtransparency;
+			gl_Position = projectionMatrix * mvPosition;
+
+
+		}
+	</script>
+
+	<script type="x-shader/x-vertex" id="vertexshader_fix_3D_anim_z">
+		precision highp float;
+		precision mediump sampler3D;
+		uniform float x_factor_min;
+		uniform float x_factor_max;
+		uniform float y_factor_min;
+		uniform float y_factor_max;
+		uniform float z_factor_min;
+		uniform float z_factor_max;
+		uniform float h_factor_min;
+		uniform float h_factor_max;
+		uniform float temp_factor_min;
+		uniform float temp_factor_max;
+		uniform float regularSize;
+		uniform float relativeSizeFactor;
+		uniform vec3 u_size;
+		uniform vec2 u_clim;
+		uniform sampler2D zs_data;
+		uniform sampler3D u_data;
+		
+		uniform sampler3D meso_limit;
+		uniform sampler3D teb_limit;
+		
+		uniform bool temp_filter;
+		uniform bool z_filter;
+		uniform bool h_filter;
+		uniform bool x_filter;
+		uniform bool y_filter;
+		varying float to_discard;
+		
+		uniform int active_color_control;
+		
+		uniform float x_min;
+		uniform float x_max;
+		uniform float y_min;
+		uniform float y_max;
+		uniform float mesolimit[38];
+		uniform float cst_X;
+		uniform float cst_Y;
+		uniform float cst_Z;
+		uniform float zs;
+		uniform float u_time;
+		attribute float x_position;
+		attribute float y_position;
+		attribute float z_position;
+		attribute float h_position;
+		attribute float customtransparency;
+		attribute float custompercentage;
+		attribute float voxel_level;
+		varying vec3 voxel_position;
+		varying vec3 v_position;
+		varying float transparency;
+		varying float tempPercentage;
+		
+		varying float voxel_point_level;
+		
+		varying float temp_val;
+
+		float sample1(vec3 texcoords) {
+			/* Sample float value from a 3D texture. Assumes intensity data. */
+			return texture(u_data, texcoords.xyz).r;
+		}
+
+		void main() {
+
+			v_position = position;
+			float voxel_position_x = ((v_position[0]/cst_X) - x_min)/(x_max - x_min)*u_size[0];
+			float voxel_position_y = u_size[1]-(-(v_position[2]/cst_Y) - y_min)/(y_max - y_min)*u_size[1];
+			float voxel_position_z = 0.0;
+			vec2 voxel_xy = vec2(voxel_position_x,voxel_position_y);
+			float new_zs = texture2D(zs_data, (voxel_xy/vec2(u_size[0],u_size[1]))).r;
+			voxel_point_level = voxel_level;
+			if(voxel_level < 7.0){
+			    
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],7);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,0.0);
+					sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+					
+					if((sample3D_val)*cst_Z > v_position[1]){
+						voxel_position_z = 0.0;
+					} else {
+						for(int i=1; i< 7; i++){
+							sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+							vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+							sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+							float sample3D_val_2 = texture(teb_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+							if((sample3D_val)*cst_Z > v_position[1]){
+								float z_min = sample3D_val;
+								float z_max = sample3D_val_2;
+								voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0;
+								break;
+							}
+						}
+					}
+				} else {
+					
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],33);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,1.0);
+					sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+				
+					if(sample3D_val*cst_Z > v_position[1]){
+							voxel_position_z = 6.0;
+						} else {
+							for(int i=2; i< 32; i++){
+								sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+								vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+								sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+								float sample3D_val_2 = texture(meso_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+								if(sample3D_val*cst_Z > v_position[1]){
+									float z_min = sample3D_val;
+									float z_max = sample3D_val_2;
+									voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0 + 5.0;
+									break;
+								}
+							}
+						}
+				}
+
+			voxel_position = vec3(voxel_position_x,voxel_position_y,voxel_position_z);
+
+			float val = sample1(voxel_position/u_size);
+			
+			temp_val = val;
+
+			if(active_color_control == 0){
+				tempPercentage = 0.5;
+			} else if(active_color_control == 1){
+				if (val<u_clim[0] || val> u_clim[1]) {
+					tempPercentage = -1.0;
+				} else {
+					tempPercentage = (val - u_clim[0])/(u_clim[1] - u_clim[0]);
+					if (tempPercentage < 0.0) {
+						tempPercentage = 0.0;
+					} else if (tempPercentage > 1.0) {
+						tempPercentage = 1.0;
+					}
+				}
+			} else if(active_color_control == 2){
+				tempPercentage = (val - 297.92)/(300.8 - 297.92);
+				if (tempPercentage < 0.0) {
+					tempPercentage = 0.0;
+				} else if (tempPercentage > 1.0) {
+					tempPercentage = 1.0;
+				}
+			}
+
+			float sizeShader;
+			float addFactor;
+			float basicSize = 10000.0;
+			if (tempPercentage == 0.5 || relativeSizeFactor == 1.0) {
+				sizeShader = basicSize;
+			} else if (relativeSizeFactor < 1.0) {
+				addFactor = 1.0-relativeSizeFactor;
+				sizeShader = (tempPercentage < 0.5) ? basicSize + (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize - (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			} else if (relativeSizeFactor > 1.0) {
+				addFactor = relativeSizeFactor - 1.0;
+				sizeShader = (tempPercentage < 0.5) ? basicSize - (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize + (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			}
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			//if(custompercentage > temp_factor_min && custompercentage < temp_factor_max && x_position > x_factor_min && x_position < x_factor_max && y_position > y_factor_min && y_position < y_factor_max && z_position > z_factor_min && z_position < z_factor_max && h_position > h_factor_min && h_position < h_factor_max){
+			to_discard = 0.0;
+			if(temp_filter ==  true){
+				if(tempPercentage < temp_factor_min || tempPercentage > temp_factor_max || val < u_clim[0] ||  val > u_clim[1]){
+					to_discard = 1.0;
+				}
+			}
+			if(z_filter ==  true){
+				if(z_position < z_factor_min || z_position > z_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(h_filter ==  true){
+				if(h_position < h_factor_min || h_position > h_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(x_filter ==  true){
+				if(x_position < x_factor_min || x_position > x_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(y_filter ==  true){
+				if(y_position < y_factor_min || y_position > y_factor_max){
+					to_discard = 1.0;
+				}
+			}
+				if(abs(sin(u_time + 3.14159265359*z_position)) > 0.9){
+					if(abs(sin(u_time + 3.14159265359*z_position)) > 0.95){
+						gl_PointSize = regularSize*sizeShader * ( 1.0 / -mvPosition.z );
+					} else {
+						gl_PointSize = ((abs(sin(u_time + 3.14159265359*z_position)) - 0.9)/(0.95 - 0.9))*abs(sin(u_time + 3.14159265359*z_position))*regularSize*sizeShader * ( 1.0 / -mvPosition.z );
+					}
+				} else {
+					to_discard = 1.0;
+				}
+			//} else {
+			//	gl_PointSize = 0.0;
+			//}
+
+			transparency = customtransparency;
+			gl_Position = projectionMatrix * mvPosition;
+		}
+	</script>
+
+	<script type="x-shader/x-vertex" id="vertexshader_fix_3D_anim_x">
+		precision highp float;
+		precision mediump sampler3D;
+		uniform float x_factor_min;
+		uniform float x_factor_max;
+		uniform float y_factor_min;
+		uniform float y_factor_max;
+		uniform float z_factor_min;
+		uniform float z_factor_max;
+		uniform float h_factor_min;
+		uniform float h_factor_max;
+		uniform float temp_factor_min;
+		uniform float temp_factor_max;
+		uniform float regularSize;
+		uniform float relativeSizeFactor;
+		uniform vec3 u_size;
+		uniform vec2 u_clim;
+		uniform sampler2D zs_data;
+		uniform sampler3D u_data;
+		
+		uniform sampler3D meso_limit;
+		uniform sampler3D teb_limit;
+		
+		uniform bool temp_filter;
+		uniform bool z_filter;
+		uniform bool h_filter;
+		uniform bool x_filter;
+		uniform bool y_filter;
+		varying float to_discard;
+		
+		uniform int active_color_control;
+		
+		varying float voxel_point_level;
+		
+		uniform float x_min;
+		uniform float x_max;
+		uniform float y_min;
+		uniform float y_max;
+		uniform float mesolimit[38];
+		uniform float cst_X;
+		uniform float cst_Y;
+		uniform float cst_Z;
+		uniform float zs;
+		uniform float u_time;
+		attribute float x_position;
+		attribute float y_position;
+		attribute float z_position;
+		attribute float h_position;
+		attribute float customtransparency;
+		attribute float custompercentage;
+		attribute float voxel_level;
+		varying vec3 voxel_position;
+		varying vec3 v_position;
+		varying float transparency;
+		varying float tempPercentage;
+		
+		varying float temp_val;
+
+		float sample1(vec3 texcoords) {
+			/* Sample float value from a 3D texture. Assumes intensity data. */
+			return texture(u_data, texcoords.xyz).r;
+		}
+
+		void main() {
+			v_position = position;
+
+			float voxel_position_x = ((v_position[0]/cst_X) - x_min)/(x_max - x_min)*u_size[0];
+			float voxel_position_y = u_size[1]-(-(v_position[2]/cst_Y) - y_min)/(y_max - y_min)*u_size[1];
+			float voxel_position_z = 0.0;
+			vec2 voxel_xy = vec2(voxel_position_x,voxel_position_y);
+			float new_zs = texture2D(zs_data, (voxel_xy/vec2(u_size[0],u_size[1]))).r;
+			
+			voxel_point_level = voxel_level;
+			if(voxel_level < 7.0){
+			    
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],7);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,0.0);
+					sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+					
+					if((sample3D_val)*cst_Z > v_position[1]){
+						voxel_position_z = 0.0;
+					} else {
+						for(int i=1; i< 7; i++){
+							sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+							vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+							sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+							float sample3D_val_2 = texture(teb_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+							if((sample3D_val)*cst_Z > v_position[1]){
+								float z_min = sample3D_val;
+								float z_max = sample3D_val_2;
+								voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0;
+								break;
+							}
+						}
+					}
+				} else {
+					
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],33);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,1.0);
+					sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+				
+					if(sample3D_val*cst_Z > v_position[1]){
+							voxel_position_z = 6.0;
+						} else {
+							for(int i=2; i< 32; i++){
+								sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+								vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+								sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+								float sample3D_val_2 = texture(meso_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+								if(sample3D_val*cst_Z > v_position[1]){
+									float z_min = sample3D_val;
+									float z_max = sample3D_val_2;
+									voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0 + 5.0;
+									break;
+								}
+							}
+						}
+				}
+
+			voxel_position = vec3(voxel_position_x,voxel_position_y,voxel_position_z);
+
+			float val = sample1(voxel_position/u_size);
+			
+			temp_val = val;
+
+			if(active_color_control == 0){
+				tempPercentage = 0.5;
+			} else if(active_color_control == 1){
+				if (val<u_clim[0] || val> u_clim[1]) {
+					tempPercentage = -1.0;
+				} else {
+					tempPercentage = (val - u_clim[0])/(u_clim[1] - u_clim[0]);
+					if (tempPercentage < 0.0) {
+						tempPercentage = 0.0;
+					} else if (tempPercentage > 1.0) {
+						tempPercentage = 1.0;
+					}
+				}
+			} else if(active_color_control == 2){
+				tempPercentage = (val - 297.92)/(300.8 - 297.92);
+				if (tempPercentage < 0.0) {
+					tempPercentage = 0.0;
+				} else if (tempPercentage > 1.0) {
+					tempPercentage = 1.0;
+				}
+			}
+
+			float sizeShader;
+			float addFactor;
+			float basicSize = 10000.0;
+			if (tempPercentage == 0.5 || relativeSizeFactor == 1.0) {
+				sizeShader = basicSize;
+			} else if (relativeSizeFactor < 1.0) {
+				addFactor = 1.0-relativeSizeFactor;
+				sizeShader = (tempPercentage < 0.5) ? basicSize + (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize - (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			} else if (relativeSizeFactor > 1.0) {
+				addFactor = relativeSizeFactor - 1.0;
+				sizeShader = (tempPercentage < 0.5) ? basicSize - (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize + (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			}
+
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			//if(custompercentage > temp_factor_min && custompercentage < temp_factor_max && x_position > x_factor_min && x_position < x_factor_max && y_position > y_factor_min && y_position < y_factor_max && z_position > z_factor_min && z_position < z_factor_max && h_position > h_factor_min && h_position < h_factor_max){
+			to_discard = 0.0;
+			if(temp_filter ==  true){
+				if(tempPercentage < temp_factor_min || tempPercentage > temp_factor_max || val < u_clim[0] ||  val > u_clim[1]){
+					to_discard = 1.0;
+				}
+			}
+			if(z_filter ==  true){
+				if(z_position < z_factor_min || z_position > z_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(h_filter ==  true){
+				if(h_position < h_factor_min || h_position > h_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(x_filter ==  true){
+				if(x_position < x_factor_min || x_position > x_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(y_filter ==  true){
+				if(y_position < y_factor_min || y_position > y_factor_max){
+					to_discard = 1.0;
+				}
+			}
+				if(abs(sin(u_time + 3.14159265359*x_position)) > 0.9){
+					if(abs(sin(u_time + 3.14159265359*x_position)) > 0.95){
+						gl_PointSize = regularSize*sizeShader * ( 1.0 / -mvPosition.z );
+					} else {
+						gl_PointSize = ((abs(sin(u_time + 3.14159265359*x_position)) - 0.9)/(0.95 - 0.9))*abs(sin(u_time + 3.14159265359*x_position))*regularSize*sizeShader * ( 1.0 / -mvPosition.z );
+					}
+				} else {
+					to_discard = 0.0;
+				}
+			//} else {
+			//	gl_PointSize = 0.0;
+			//}
+
+			transparency = customtransparency;
+			gl_Position = projectionMatrix * mvPosition;
+		}
+	</script>
+
+	<script type="x-shader/x-vertex" id="vertexshader_fix_3D_anim_y">
+		precision highp float;
+		precision mediump sampler3D;
+		uniform float x_factor_min;
+		uniform float x_factor_max;
+		uniform float y_factor_min;
+		uniform float y_factor_max;
+		uniform float z_factor_min;
+		uniform float z_factor_max;
+		uniform float h_factor_min;
+		uniform float h_factor_max;
+		uniform float temp_factor_min;
+		uniform float temp_factor_max;
+		uniform float regularSize;
+		uniform float relativeSizeFactor;
+		uniform vec3 u_size;
+		uniform vec2 u_clim;
+		uniform sampler2D zs_data;
+		uniform sampler3D u_data;
+		
+		uniform bool temp_filter;
+		uniform bool z_filter;
+		uniform bool h_filter;
+		uniform bool x_filter;
+		uniform bool y_filter;
+		varying float to_discard;
+		
+		uniform sampler3D meso_limit;
+		uniform sampler3D teb_limit;
+		
+		uniform int active_color_control;
+		
+		uniform float x_min;
+		uniform float x_max;
+		uniform float y_min;
+		uniform float y_max;
+		uniform float mesolimit[38];
+		uniform float cst_X;
+		uniform float cst_Y;
+		uniform float cst_Z;
+		uniform float zs;
+		uniform float u_time;
+		attribute float x_position;
+		attribute float y_position;
+		attribute float z_position;
+		attribute float h_position;
+		attribute float customtransparency;
+		attribute float custompercentage;
+		attribute float voxel_level;
+		varying vec3 voxel_position;
+		varying vec3 v_position;
+		varying float transparency;
+		varying float tempPercentage;
+		
+		varying float temp_val;
+
+		float sample1(vec3 texcoords) {
+			/* Sample float value from a 3D texture. Assumes intensity data. */
+			return texture(u_data, texcoords.xyz).r;
+		}
+
+		void main() {
+			v_position = position;
+
+			float voxel_position_x = ((v_position[0]/cst_X) - x_min)/(x_max - x_min)*u_size[0];
+			float voxel_position_y = u_size[1]-(-(v_position[2]/cst_Y) - y_min)/(y_max - y_min)*u_size[1];
+			float voxel_position_z = 0.0;
+			vec2 voxel_xy = vec2(voxel_position_x,voxel_position_y);
+			float new_zs = texture2D(zs_data, (voxel_xy/vec2(u_size[0],u_size[1]))).r;
+			if(voxel_level < 7.0){
+			    
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],7);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,0.0);
+					sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+					
+					if((sample3D_val)*cst_Z > v_position[1]){
+						voxel_position_z = 0.0;
+					} else {
+						for(int i=1; i< 7; i++){
+							sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+							vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+							sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+							float sample3D_val_2 = texture(teb_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+							if((sample3D_val)*cst_Z > v_position[1]){
+								float z_min = sample3D_val;
+								float z_max = sample3D_val_2;
+								voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0;
+								break;
+							}
+						}
+					}
+				} else {
+					
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],33);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,1.0);
+					sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+				
+					if(sample3D_val*cst_Z > v_position[1]){
+							voxel_position_z = 6.0;
+						} else {
+							for(int i=2; i< 32; i++){
+								sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+								vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+								sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+								float sample3D_val_2 = texture(meso_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+								if(sample3D_val*cst_Z > v_position[1]){
+									float z_min = sample3D_val;
+									float z_max = sample3D_val_2;
+									voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0 + 5.0;
+									break;
+								}
+							}
+						}
+				}
+
+			voxel_position = vec3(voxel_position_x,voxel_position_y,voxel_position_z);
+
+			float val = sample1(voxel_position/u_size);
+			
+			temp_val = val;
+
+			if(active_color_control == 0){
+				tempPercentage = 0.5;
+			} else if(active_color_control == 1){
+				if (val<u_clim[0] || val> u_clim[1]) {
+					tempPercentage = -1.0;
+				} else {
+					tempPercentage = (val - u_clim[0])/(u_clim[1] - u_clim[0]);
+					if (tempPercentage < 0.0) {
+						tempPercentage = 0.0;
+					} else if (tempPercentage > 1.0) {
+						tempPercentage = 1.0;
+					}
+				}
+			} else if(active_color_control == 2){
+				tempPercentage = (val - 297.92)/(300.8 - 297.92);
+				if (tempPercentage < 0.0) {
+					tempPercentage = 0.0;
+				} else if (tempPercentage > 1.0) {
+					tempPercentage = 1.0;
+				}
+			}
+
+			float sizeShader;
+			float addFactor;
+			float basicSize = 10000.0;
+			if (tempPercentage == 0.5 || relativeSizeFactor == 1.0) {
+				sizeShader = basicSize;
+			} else if (relativeSizeFactor < 1.0) {
+				addFactor = 1.0-relativeSizeFactor;
+				sizeShader = (tempPercentage < 0.5) ? basicSize + (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize - (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			} else if (relativeSizeFactor > 1.0) {
+				addFactor = relativeSizeFactor - 1.0;
+				sizeShader = (tempPercentage < 0.5) ? basicSize - (basicSize*addFactor*(0.5*(0.5-tempPercentage))*2.0) : basicSize + (basicSize*addFactor*(0.5*(tempPercentage-0.5))*2.0) ;
+			}
+
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			//if(custompercentage > temp_factor_min && custompercentage < temp_factor_max && x_position > x_factor_min && x_position < x_factor_max && y_position > y_factor_min && y_position < y_factor_max && z_position > z_factor_min && z_position < z_factor_max && h_position > h_factor_min && h_position < h_factor_max){
+			to_discard = 0.0;
+			if(temp_filter ==  true){
+				if(tempPercentage < temp_factor_min || tempPercentage > temp_factor_max || val < u_clim[0] ||  val > u_clim[1]){
+					to_discard = 1.0;
+				}
+			}
+			if(z_filter ==  true){
+				if(z_position < z_factor_min || z_position > z_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(h_filter ==  true){
+				if(h_position < h_factor_min || h_position > h_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(x_filter ==  true){
+				if(x_position < x_factor_min || x_position > x_factor_max){
+					to_discard = 1.0;
+				}
+			}
+			if(y_filter ==  true){
+				if(y_position < y_factor_min || y_position > y_factor_max){
+					to_discard = 1.0;
+				}
+			}
+				if(abs(sin(u_time + 3.14159265359*y_position)) > 0.9){
+					if(abs(sin(u_time + 3.14159265359*y_position)) > 0.95){
+						gl_PointSize = regularSize*sizeShader * ( 1.0 / -mvPosition.z );
+					} else {
+						gl_PointSize = ((abs(sin(u_time + 3.14159265359*y_position)) - 0.9)/(0.95 - 0.9))*abs(sin(u_time + 3.14159265359*y_position))*regularSize*sizeShader * ( 1.0 / -mvPosition.z );
+					}
+				} else {
+					to_discard = 0.0;
+				}
+			//} else {
+			//	gl_PointSize = 0.0;
+			//}
+
+			transparency = customtransparency;
+			gl_Position = projectionMatrix * mvPosition;
+		}
+	</script>
+
+	<script type="x-shader/x-vertex" id="vertexshader_2D_plane">
+		varying vec3 v_position;
+		attribute float voxel_level;
+		
+		uniform bool temp_filter;
+		uniform bool z_filter;
+		uniform bool h_filter;
+		uniform bool x_filter;
+		uniform bool y_filter;
+		varying float to_discard;
+
+		varying float voxel_point_level;
+
+		void main() {
+
+			voxel_point_level = voxel_level;
+
+			vec4 position4 = modelMatrix * vec4(position, 1.);
+			v_position = position4.xyz;
+			gl_Position = projectionMatrix * viewMatrix * position4;
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentshader_2D_plane">
+		precision highp float;
+		precision mediump sampler3D;
+
+		varying vec3 v_position;
+		uniform vec3 u_size;
+		uniform vec2 u_clim;
+		uniform sampler3D u_data;
+		uniform sampler2D zs_data;
+		uniform sampler2D u_cmdata;
+		uniform sampler2D pointTexture;
+		
+		varying float to_discard;
+		
+		uniform sampler3D meso_limit;
+		uniform sampler3D teb_limit;
+
+		varying float voxel_point_level;
+
+		uniform float x_min;
+		uniform float x_max;
+		uniform float y_min;
+		uniform float y_max;
+		uniform float mesolimit[38];
+		uniform float cst_X;
+		uniform float cst_Y;
+		uniform float cst_Z;
+		uniform float zs;
+		uniform float transparency_factor;
+		
+		uniform int active_color_control;
+
+
+		float sample1(vec3 texcoords) {
+				/* Sample float value from a 3D texture. Assumes intensity data. */
+				return texture(u_data, texcoords.xyz).r;
+		}
+		
+		
+
+		void main() {
+
+				float voxel_position_x = ((v_position[0]/cst_X) - x_min)/(x_max - x_min)*u_size[0];
+				float voxel_position_y = u_size[1]-(-(v_position[2]/cst_Y) - y_min)/(y_max - y_min)*u_size[1];
+				float voxel_position_z = 0.0;
+				vec2 voxel_xy = vec2(voxel_position_x,voxel_position_y);
+
+				
+				if(voxel_point_level < 7.0){
+			    
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],7);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,0.0);
+					sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+					
+					if((sample3D_val)*cst_Z > v_position[1]){
+						voxel_position_z = 0.0;
+					} else {
+						for(int i=1; i< 7; i++){
+							sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+							vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+							sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+							float sample3D_val_2 = texture(teb_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+							if((sample3D_val)*cst_Z > v_position[1]){
+								float z_min = sample3D_val;
+								float z_max = sample3D_val_2;
+								voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0;
+								break;
+							}
+						}
+					}
+				} else {
+					
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					
+					sample3D_size = vec3(u_size[0],u_size[1],33);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,0.0);
+					sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+				
+					if(sample3D_val*cst_Z > v_position[1]){
+							voxel_position_z = 6.0;
+						} else {
+							for(int i=1; i< 32; i++){
+								sample3D_coord = vec3(voxel_position_x,voxel_position_y,float(i));
+								vec3 sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+								sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+								float sample3D_val_2 = texture(meso_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+								if(sample3D_val*cst_Z > v_position[1]){
+									float z_min = sample3D_val;
+									float z_max = sample3D_val_2;
+									voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0 + 5.0;
+									break;
+								}
+							}
+						}
+				}
+				
+				vec3 voxel_position = vec3(voxel_position_x,voxel_position_y,voxel_position_z);
+
+				if(active_color_control == 1){
+					float val = sample1(voxel_position/u_size);
+					if(val<u_clim[0]){
+						//gl_FragColor = vec4(0.0,0.0,0.0,0.0);
+						float new_val = 0.0;
+						gl_FragColor = texture2D(u_cmdata, vec2(new_val, 0.5));
+					} else if(val>u_clim[1]){
+						//gl_FragColor = vec4(0.0,0.0,0.0,0.0);
+						float new_val = 1.0;
+						gl_FragColor = texture2D(u_cmdata, vec2(new_val, 0.5));
+					} else{
+						float new_val = (val - u_clim[0])/(u_clim[1] - u_clim[0]);
+						gl_FragColor = texture2D(u_cmdata, vec2(new_val, 0.5));
+					}
+				} else if(active_color_control == 2){
+					float val = sample1(voxel_position/u_size);
+					float newval;
+					if(val<300.8 && val >= 300.02){
+						newval = 5.5/6.0;
+					} else if(val<300.02 && val >= 299.64){
+						newval = 4.5/6.0;
+					} else if(val<299.64 && val >= 299.36){
+						newval = 3.5/6.0;
+					} else if(val<299.36 && val >= 298.98){
+						newval = 2.5/6.0;
+					} else if(val<298.98 && val >= 298.40){
+						newval = 1.5/6.0;
+					} else if(val<298.40 && val >= 297.92){
+						newval = 0.5/6.0;
+					}
+					gl_FragColor = texture2D(u_cmdata, vec2(newval, 0.5));
+				
+				} else {
+					//float val = fract(float(int(voxel_position[2]))/(u_size[2]/7.0));
+					//float val = mod((float(int(voxel_position[2]))+0.5),6.0)/6.0;
+					float val = (6.0-mod((float(int(voxel_position[2]))+0.5),6.0))/6.0;
+					gl_FragColor = texture2D(u_cmdata, vec2(val, 0.5));
+				}
+				
+				gl_FragColor= vec4(gl_FragColor[0],gl_FragColor[1],gl_FragColor[2],transparency_factor);
+
+
+
+
+		}
+	</script>
+
+	<script type="x-shader/x-vertex" id="vertexshader_buildings">
+
+		attribute vec3 color;
+		attribute vec3 customNormal;
+		varying vec3 v_position;
+		varying vec3 v_color;
+		varying vec3 Normal;
+
+		void main() {
+			vec4 position4 = modelMatrix * vec4(position, 1.);
+			v_position = position4.xyz;
+			v_color = color;
+			Normal = customNormal;
+
+			gl_Position = projectionMatrix * viewMatrix * position4;
+
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentshader_buildings">
+		precision highp float;
+
+		varying vec3 v_position;
+		varying vec3 v_color;
+		varying vec3 Normal;
+
+		uniform vec3 light_direction[2];
+		uniform float light_ambient;
+
+		uniform float transparency;
+
+		void main() {
+			float d = light_ambient;
+			d += max(0.0,dot(Normal,light_direction[0]));
+			d += max(0.0,dot(Normal,light_direction[1]));
+			gl_FragColor= vec4(d * v_color,transparency);
+		}
+	</script>
+
+
+	<script type="x-shader/x-vertex" id="vertexshader_3D_plane">
+		varying vec3 v_position;
+		attribute vec3 customNormal;
+		varying vec3 Normal;
+
+		void main() {
+			vec4 position4 = modelMatrix * vec4(position, 1.);
+			v_position = position4.xyz;
+			Normal = customNormal;
+			gl_Position = projectionMatrix * viewMatrix * position4;
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentshader_3D_plane">
+		precision highp float;
+		precision mediump sampler3D;
+
+		varying vec3 v_position;
+		uniform vec2 u_clim;
+		uniform vec3 u_size;
+		uniform sampler3D u_data;
+		uniform sampler2D zs_data;
+		uniform sampler2D u_cmdata;
+		
+		uniform bool temp_filter;
+		uniform bool z_filter;
+		uniform bool h_filter;
+		uniform bool x_filter;
+		uniform bool y_filter;
+
+		
+		uniform vec3 light_direction[2];
+		uniform float light_ambient;
+
+		uniform sampler3D meso_limit;
+		uniform sampler3D teb_limit;
+
+		uniform float x_min;
+		uniform float x_max;
+		uniform float y_min;
+		uniform float y_max;
+		//uniform float sbl_limit[7];
+		//uniform float meso_limit[32];
+		uniform float type_model;
+		uniform float cst_X;
+		uniform float cst_Y;
+		uniform float cst_Z;
+		uniform float zs;
+		uniform int active_color_control;
+		
+		uniform float transparency;
+
+		varying vec3 Normal;
+
+		uniform bool sbl_meso_level[37];
+
+		float sample1(vec3 texcoords) {
+				/* Sample float value from a 3D texture. Assumes intensity data. */
+				return texture(u_data, texcoords.xyz).r;
+		}
+
+		void main() {
+
+				float voxel_position_x = ((v_position[0]/cst_X) - x_min)/(x_max - x_min)*u_size[0];
+				float voxel_position_y = u_size[1]-(-(v_position[2]/cst_Y) - y_min)/(y_max - y_min)*u_size[1];
+				float voxel_position_z = 0.0;
+				
+				if(voxel_position_x > u_size[0] || voxel_position_x < 0.0){
+					discard;
+				}
+				if(voxel_position_y > u_size[1] || voxel_position_y < 0.0){
+					discard;
+				}
+				
+				vec2 voxel_xy = vec2(voxel_position_x,voxel_position_y);
+				float new_zs = texture2D(zs_data, (voxel_xy/vec2(u_size[0],u_size[1]))).r;
+
+				if(type_model < 0.5 ){
+				
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					vec3 sample3D_coord_2;
+					float sample3D_val;
+					float sample3D_val_2;		
+					
+					sample3D_size = vec3(u_size[0],u_size[1],7);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,0.0);
+					sample3D_val = texture(teb_limit, (sample3D_coord/sample3D_size).xyz).r;
+					sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,6.0);
+					sample3D_val_2 = texture(teb_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+				
+					if(sample3D_val*cst_Z > v_position[1]){
+						discard;
+					} else if(sample3D_val_2*cst_Z < v_position[1]){
+						discard;
+					} else {
+						for(int i=1; i< 7; i++){
+							vec3 sample3D_coord_3;
+							vec3 sample3D_coord_4;
+							float sample3D_val_3;
+							float sample3D_val_4;
+							sample3D_coord_3 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+							sample3D_val_3 = texture(teb_limit, (sample3D_coord_3/sample3D_size).xyz).r;
+							sample3D_coord_4 = vec3(voxel_position_x,voxel_position_y,float(i));
+							sample3D_val_4 = texture(teb_limit, (sample3D_coord_4/sample3D_size).xyz).r;
+							if(sample3D_val_4*cst_Z > v_position[1]){
+								float z_min = sample3D_val_3;
+								float z_max = sample3D_val_4;
+								voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0;
+								break;
+							}
+						}
+					}
+					
+					
+				} else {
+					
+					vec3 sample3D_size;
+					vec3 sample3D_coord;
+					float sample3D_val;
+					vec3 sample3D_coord_2;
+					float sample3D_val_2;
+						
+					sample3D_size = vec3(u_size[0],u_size[1],33);
+					sample3D_coord = vec3(voxel_position_x,voxel_position_y,1.0);
+					sample3D_val = texture(meso_limit, (sample3D_coord/sample3D_size).xyz).r;
+					sample3D_coord_2 = vec3(voxel_position_x,voxel_position_y,2.0);
+					sample3D_val_2 = texture(meso_limit, (sample3D_coord_2/sample3D_size).xyz).r;
+				
+					if(sample3D_val_2*cst_Z > v_position[1]){
+											
+						if(sample3D_val*cst_Z > v_position[1]){
+							discard;
+						}
+						else {
+							voxel_position_z = 6.0;
+						}
+					} else {
+						for(int i=3; i< 32; i++){
+							vec3 sample3D_coord_3;
+							vec3 sample3D_coord_4;
+							float sample3D_val_3;
+							float sample3D_val_4;
+							sample3D_coord_3 = vec3(voxel_position_x,voxel_position_y,float(i-1));
+							sample3D_val_3 = texture(meso_limit, (sample3D_coord_3/sample3D_size).xyz).r;
+							sample3D_coord_4 = vec3(voxel_position_x,voxel_position_y,float(i));
+							sample3D_val_4 = texture(meso_limit, (sample3D_coord_4/sample3D_size).xyz).r;
+							if(sample3D_val_4*cst_Z > v_position[1]){
+								float z_min = sample3D_val_3;
+								float z_max = sample3D_val_4;
+								voxel_position_z = (v_position[1] - z_min*cst_Z)/(z_max*cst_Z - z_min*cst_Z) + float(i) - 1.0 + 5.0;
+								break;
+							} 
+						}
+					}
+				}
+
+				
+				vec3 voxel_position = vec3(voxel_position_x,voxel_position_y,voxel_position_z);
+
+				
+
+				if(sbl_meso_level[int(voxel_position_z)] == false){
+					discard;
+				} else {
+					float val = 0.0;
+					if(active_color_control == 1){
+						float firstval = sample1(voxel_position/u_size);
+							if(firstval<u_clim[0]){
+								//discard;
+								val = 0.5/6.0;
+							} else if(firstval>u_clim[1]){
+								//discard;
+								val = 5.5/6.0;
+							} else{
+								val = (firstval - u_clim[0])/(u_clim[1] - u_clim[0]);
+							}
+
+					} else if(active_color_control == 2){
+						float anteval = sample1(voxel_position/u_size);
+						if(anteval<300.8 && anteval >= 300.02){
+							val = 5.5/6.0;
+						} else if(anteval<300.02 && anteval >= 299.64){
+							val = 4.5/6.0;
+						} else if(anteval<299.64 && anteval >= 299.36){
+							val = 3.5/6.0;
+						} else if(anteval<299.36 && anteval >= 298.98){
+							val = 2.5/6.0;
+						} else if(anteval<298.98 && anteval >= 298.40){
+							val = 1.5/6.0;
+						} else if(anteval<298.40 && anteval >= 297.92){
+							val = 0.5/6.0;
+						}
+					
+					} else {
+						//val = fract(float(int(voxel_position_z))/(u_size[2]/7.0));
+						//val = mod((float(int(voxel_position[2]))+0.5),6.0)/6.0;
+						val = (6.0-mod((float(int(voxel_position[2]))+0.5),6.0))/6.0;
+					}
+
+
+				vec4 point_color_4 = texture2D(u_cmdata, vec2(val, 0.5));
+				vec3 point_color_3 = vec3(point_color_4[0],point_color_4[1],point_color_4[2]);
+
+				float d = light_ambient;
+				d += max(0.0,dot(Normal,light_direction[0]));
+				d += max(0.0,dot(Normal,light_direction[1]));
+		
+				gl_FragColor = vec4(d * point_color_3,transparency);
+				}
+		}
+	</script>
+	<script type="module">
+
+		import { init} from './js/initialisation.js'
+		import { render } from './js/creative_functions.js'
+		import { initialise } from './js/menu.js'
+		import {} from './js/filter-sliders.js'
+
+		init();
+		render();
+		initialise();
+
+	</script>
+
+
+
+
+</body>
+</html>
