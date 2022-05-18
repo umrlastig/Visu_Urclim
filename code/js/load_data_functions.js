@@ -23,7 +23,9 @@ import {
 
 } from "./footprint.js";
 import {draw_graph2D} from "./2D_graph.js"
-import { showTimeVis } from "./time_visualisation.js";
+import { showTimeVisMulti } from "./time_visualisation.js";
+import { showTimeVis } from "./time_visualisation2.js";
+
 
 export function chargerParams(event) {
 	/*
@@ -352,9 +354,9 @@ export const setCurrent = (i) => {
 
 /**
  * permet de recuperer les coordonnees de l'emprise selectionnée par l'utilisateur.
- * @param {*} marker_front1 
- * @param {*} marker_front2 
- * @param {*} data_to_load_list 
+ * @param {*} marker_front1
+ * @param {*} marker_front2
+ * @param {*} data_to_load_list
  */
 export function selectfootprint(marker_front1, marker_front2,data_to_load_list) {
 
@@ -405,13 +407,13 @@ export function selectfootprint(marker_front1, marker_front2,data_to_load_list) 
 	//Cette fonction doit etre lancer lorsque tout les fichiers sont charger et que l'on a cliqué sur select footprint
 	// Il faut donc changer le temps, ou trouver une meilleure méthode plus performante
 	loadAll();
-	
+
 	//on redessine l'emprise pour enlever les points hors de l'emprise selectionné
-	display_footprint(carte, 
-        general_config.lat_min, 
-        general_config.lat_max, 
-        general_config.lng_min, 
-        general_config.lng_max, 
+	display_footprint(carte,
+        general_config.lat_min,
+        general_config.lat_max,
+        general_config.lng_min,
+        general_config.lng_max,
         general_config.netcdf_list[0].listePoints);
 
 }
@@ -433,7 +435,7 @@ function loadAll() {
 		reprojette(EPSG2154);
 		calcTempMinMax(data_list);
 	});
-	
+
 	general_config.temp_array = [general_config.temp_min,general_config.temp_max];
 	general_config.domain_max = Math.floor(general_config.temp_max + 1 - 273.15);
 	general_config.domain_min = Math.floor(general_config.temp_min - 273.15);
@@ -443,10 +445,11 @@ function loadAll() {
 	setCurrent(0);
 	draw_graph2D();
     showTimeVis(general_config.netcdf_list);
+		showTimeVisMulti(general_config.netcdf_list);
 }
 /**
  * Cette fonction permet de calculer les valeurs X/Y min/max après calcul d'emprise
- * @param {*} projection 
+ * @param {*} projection
  */
 export function reprojetteCoordMinMax(projection) {
 
@@ -466,8 +469,8 @@ export function reprojetteCoordMinMax(projection) {
 
 /**
  * Cette fonction permet de calculer les valeurs X/Y après calcul d'emprise
- * @param {*} data 
- * @param {*} projection 
+ * @param {*} data
+ * @param {*} projection
  */
 function reprojetteCoordOUV(data, projection) {
 
@@ -483,7 +486,7 @@ function reprojetteCoordOUV(data, projection) {
 }
 /**
  * lance reprojetteCoordMinMax et reprojetteCoordOUV pour tout les fichiers
- * @param {*} projection 
+ * @param {*} projection
  */
 function reprojette(projection) {
 
