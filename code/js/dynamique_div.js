@@ -7,6 +7,7 @@ var posY;
 var bool = false;
 var btn_2D = document.getElementById('btn_2D');
 var btn_3D = document.getElementById('btn_3D');
+var btn_3D_multi = document.getElementById('btn_3D_multi');
 
 curseur.addEventListener('mousedown', e => {
     posY = e.clientY;
@@ -30,10 +31,10 @@ window.addEventListener('mouseup', e => {
 
 /**
  * Cette fonction permet de modifier les tailles des deux fenetres de visualisation
- * @param {*} posY 
+ * @param {*} posY
  */
 export function change(posY) {
-    cont.style.height = posY + "px";
+    //cont.style.height = posY + "px";
     tailleGraph = heightScreen - 10 - posY;
     graph.style.height = tailleGraph + "px";
   }
@@ -47,10 +48,14 @@ btn_3D.addEventListener('click', e=>{
     showGraph(e, 'graph3D');
 })
 
+btn_3D_multi.addEventListener('click', e=>{
+    showGraph(e, 'graph3D_multi');
+})
+
 /**
  * Cette fonction permet de switcher de tableau entre le mode 2D et 3D
- * @param {*} evt 
- * @param {*} graph 
+ * @param {*} evt
+ * @param {*} graph
  */
 function showGraph(evt, graph) {
     var i, tabcontent, tablinks;
