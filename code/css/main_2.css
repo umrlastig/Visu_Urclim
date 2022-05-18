@@ -14,9 +14,9 @@ body {
   overflow: auto;
 }
 #container {
+  height: 20%;
   overflow: auto;
   position: relative;
-  height: 70%;
 }
 #curseur {
   height: 10px;
@@ -27,16 +27,18 @@ body {
 }
 #graph_container {
   height: 30%;
-  min-height: 800px;
+  min-height: 600px;
   z-index: 1;
   overflow: auto;
   position: relative;
 }
 #graph2D,
+#graph3D_multi,
 #graph3D {
   background-color: rgb(204, 201, 201);
   width: 97.85%;
   position: relative;
+  z-index: 2;
 }
 
 #graph2D {
@@ -44,16 +46,32 @@ body {
 }
 
 #diagram2D,
+#diagram3D_multi,
 #diagram3D {
   width: 80%;
   margin-left: auto;
   margin-right: auto;
+  z-index: 3;
 }
+
 #diagram3DCanvas {
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: 0;
   display: block;
 }
+
+
+#diagram3DCanvasMulti {
+  margin-left: 0;
+  margin-right: 0;
+  display: block;
+  position: absolute;
+}
+
+#content {
+  top: 0;
+  position: absolute;
+}
+
 #open_menu {
   background-color: black;
   margin-left: auto;
