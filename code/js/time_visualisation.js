@@ -1,50 +1,126 @@
 import * as THREE from "./three.module.js";
 import { OrbitControls } from "./OrbitControls.js";
-import { calculate_avg_temperature } from "./creative_functions.js";
+import { calculate_avg_temperature, calculate_point_temperature } from "./creative_functions.js";
 
 import { changeNetcdf } from "./menu.js";
 
-const canvas = document.getElementById("diagram3DCanvas"); //canvas de la visu
-var rect = canvas.getBoundingClientRect(); // Rectangle de la visu
+//const canvas = document.getElementById("diagram3DCanvas"); //canvas de la visu
+
 const selectElement = document.getElementById("date_control_input");
 
-var context = canvas.getContext("webgl2", { alpha: false, antialias: true });
 
-const scene = new THREE.Scene();
-var WIDTH = window.innerWidth * 0.55;
-var HEIGHT = window.innerHeight * 0.4;
-canvas.width = WIDTH;
-canvas.height = HEIGHT;
-const camera = new THREE.PerspectiveCamera(30, WIDTH / HEIGHT, 0.1, 1000);
-camera.layers.enableAll();
-const renderer = new THREE.WebGLRenderer({ canvas: canvas, context: context });
+var canvas;
+var scenes = [], camera, renderer, emptyScene, controls;
+var numScenes;
+var rect;
+
+var scene = new THREE.Scene();
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-const controls = new OrbitControls(camera, renderer.domElement);
-camera.position.set(-4.4, 7.1, 17.9);
-controls.update();
-controls.enableDamping = true;
-controls.dampingFactor = 0.5
-controls.keys= {}
-const lightColor = 0xffffff;
-const intensity = 0.6;
-const light = new THREE.DirectionalLight(lightColor, intensity);
-light.position.set(100, 60, -100);
-scene.add(light);
-const lightb = new THREE.DirectionalLight(lightColor, intensity);
-lightb.position.set(-100, 60, 100);
-scene.add(lightb);
 
-const lightc = new THREE.DirectionalLight(lightColor, intensity);
-lightc.position.set(-100, 60, -100);
-scene.add(lightc);
-const lightd = new THREE.DirectionalLight(lightColor, intensity);
-lightd.position.set(100, 60, 100);
-scene.add(lightd);
+function init(numScenes) {
+  canvas = document.getElementById("diagram3DCanvasMulti"); //canvas de la visu
+  var graph3D_multi = document.getElementById("graph3D_multi");
+
+  var context = canvas.getContext("webgl2", { alpha: false, antialias: true });
+  var WIDTH = window.innerWidth * 0.55;
+  var HEIGHT = window.innerHeight * 0.4;
+  canvas.width = WIDTH;
+  if (numScenes == 1) {
+    canvas.height = HEIGHT;
+  } else if (numScenes == 2 || numScenes == 4){
+    canvas.height = HEIGHT / 2 * numScenes;
+  } else {
+    canvas.height = HEIGHT / 3 * numScenes;
+  }
+  //graph3D_multi.style.height = HEIGHT +"px";
+
+
+
+  var rect = canvas.getBoundingClientRect(); // Rectangle de la visu
+
+
+
+
+
+  camera = new THREE.PerspectiveCamera(30, WIDTH / HEIGHT, 0.1, 1000);
+  camera.layers.enableAll();
+  camera.position.set(-4.4, 7.1, 17.9);
+
+
+
+  var content = document.getElementById("content");
+  content.style.width = WIDTH + 'px';
+  grille(numScenes);
+
+  var emptyScene = new THREE.Scene();
+
+  for ( var ii =  0; ii < numScenes; ++ii ) {
+
+    var scene = new THREE.Scene();
+
+    var element = document.createElement( "div" );
+    element.className = "scene";
+    if (numScenes <= 3 ) {
+      element.style.height = HEIGHT +'px';
+    } else if (numScenes <= 6) {
+      element.style.height = (HEIGHT / 2) +'px';
+    } else {
+      element.style.height = (HEIGHT / 3) +'px';
+    }
+
+    scene.element = element;
+
+    content.appendChild(element);
+
+
+    controls = new OrbitControls(camera, scene.element);
+    controls.update();
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.5
+    controls.keys= {}
+    scene.controls = controls;
+    console.log(scene);
+
+
+    const lightColor = 0xffffff;
+    const color = new THREE.Color( 0x000000 );
+    const intensity = 0.6;
+    const light = new THREE.DirectionalLight(lightColor, intensity);
+    light.position.set(100, 60, -100);
+    scene.add(light);
+    const lightb = new THREE.DirectionalLight(lightColor, intensity);
+    lightb.position.set(-100, 60, 100);
+    scene.add(lightb);
+
+    const lightc = new THREE.DirectionalLight(lightColor, intensity);
+    lightc.position.set(-100, 60, -100);
+    scene.add(lightc);
+    const lightd = new THREE.DirectionalLight(lightColor, intensity);
+    lightd.position.set(100, 60, 100);
+    scene.add(lightd);
+    scene.background = color;
+
+
+    scenes.push( scene );
+    console.log(scenes)
+  }
+
+  var template = document.getElementById("template").text;
+  var legende = document.createElement( "div" );
+  legende.innerHTML = template;
+  content.appendChild(legende);
+
+  renderer = new THREE.WebGLRenderer({ canvas: canvas, context: context });
+
+}
+
+
 
 var visu;
+
 
 function onMouseMove(evt) {
   rect = canvas.getBoundingClientRect();
@@ -227,7 +303,7 @@ export class BarVisualisation extends Visualisation {
     } else {
       yoffset = 0;
     }
-    
+
     this.axisData.forEach((e) => {
       let geom = new THREE.BoxGeometry(
         this.step,
@@ -257,7 +333,7 @@ export class BarVisualisation extends Visualisation {
       let edges = new THREE.EdgesGeometry(geom);
       const line = new THREE.LineSegments(
         edges,
-        new THREE.LineBasicMaterial({ 
+        new THREE.LineBasicMaterial({
             color: 0xffffff,
             linewidth: 3
         })
@@ -327,8 +403,8 @@ export class BarVisualisation extends Visualisation {
 
 
 /**
- * 
- * @param {Number} t between 0 and 1 
+ *
+ * @param {Number} t between 0 and 1
  * @returns interpolated color
  */
 function interpBuRed(t) {
@@ -375,40 +451,85 @@ function interpBuRed(t) {
 }
 
 
+
+function grille(numScenes) {
+  if (numScenes == 1) {
+  }
+  else if (numScenes == 2 || numScenes == 4) {
+    content.style.display = "grid"
+    content.style.gridTemplateColumns = "repeat(2, 1fr)"
+  }
+  else if ((numScenes % 4) == 0 ) {
+    content.style.display = "grid"
+    content.style.gridTemplateColumns = "repeat(4, 1fr)"
+  }
+  else{
+    content.style.display = "grid"
+    content.style.gridTemplateColumns = "repeat(3, 1fr)"
+  }
+}
+
+
 /**
  * Shows time visualisation
- * @param {Array} netcdf_list 
+ * @param {Array} netcdf_list
  */
-export function showTimeVis(netcdf_list) {
-  let data = [];
+export function showTimeVisMulti(netcdf_list) {
 
-  let avg_list = calculate_avg_temperature();
-  avg_list.forEach((el, t) => {
-    data.push(
-      { level: 1, date_index: t, avg_temp: el.teb_1, date: el.date },
-      { level: 2, date_index: t, avg_temp: el.teb_2, date: el.date },
-      { level: 3, date_index: t, avg_temp: el.teb_3, date: el.date },
-      { level: 4, date_index: t, avg_temp: el.teb_4, date: el.date },
-      { level: 5, date_index: t, avg_temp: el.teb_5, date: el.date },
-      { level: 6, date_index: t, avg_temp: el.teb_6, date: el.date }
-    );
+  let point_list = calculate_point_temperature();
+  console.log(point_list)
+  numScenes = 0;
+  //console.log(point_list);
+  point_list.forEach(() => {
+    numScenes += 1;
   });
-  //console.log(data)
-  let grid = new xzGrid(1, 7, 1, 1, netcdf_list.length, 1);
-  visu = new BarVisualisation(data, "level", "avg_temp", "date_index", grid, {
-    zoffset: -3,
-    extraAttributes: ["date"],
+
+  //console.log(numScenes);
+  init(numScenes);
+
+  window.addEventListener("mousemove", onMouseMove, false);
+  window.addEventListener("scroll", () => {
+    rect = canvas.getBoundingClientRect();
   });
-  visu.centerOn();
-  visu.setgroupAxis("z");
+  canvas.addEventListener("click", selectGroupOnClick);
+
+
+  let compteur = 0
+  scenes.forEach( function( scene ) {
+    let data = [];
+
+
+    point_list[compteur].forEach((el, t) => {
+      data.push(
+        { level: 1, date_index: t, avg_temp: el.teb_1, date: el.date },
+        { level: 2, date_index: t, avg_temp: el.teb_2, date: el.date },
+        { level: 3, date_index: t, avg_temp: el.teb_3, date: el.date },
+        { level: 4, date_index: t, avg_temp: el.teb_4, date: el.date },
+        { level: 5, date_index: t, avg_temp: el.teb_5, date: el.date },
+        { level: 6, date_index: t, avg_temp: el.teb_6, date: el.date }
+      );
+    });
+    //console.log(data);
+    let grid = new xzGrid(1, 7, 1, 1, netcdf_list.length, 1);
+    visu = new BarVisualisation(data, "level", "avg_temp", "date_index", grid, {
+      zoffset: -3,
+      extraAttributes: ["date"],
+    });
+    visu.centerOn();
+    visu.setgroupAxis("z");
   //visu.highlightGroup(visu.groups[0], scene)
   //visu.selectGroup(visu.groups[1])
-  visu.show(scene);
 
-  const axesHelper = new THREE.AxesHelper(9);
-  axesHelper.material.linewidth = 3
-  scene.add(axesHelper);
-  updateCurrentSelected3D();
+    visu.show(scene);
+
+    const axesHelper = new THREE.AxesHelper(9);
+    axesHelper.material.linewidth = 3
+    scene.add(axesHelper);
+
+    updateCurrentSelected3DMulti();
+
+    compteur += 1
+  })
   animate();
 }
 
@@ -434,12 +555,87 @@ async function onHoverPick() {
 }
 
 
+/*function updateSize(numScenes) {
+
+  var WIDTH = window.innerWidth * 0.55;
+  var HEIGHT = window.innerHeight * 0.4 * numScenes;
+
+  if ( canvas.width !== width || canvas.height != height ) {
+
+    renderer.setSize ( width, height, false );
+
+  }
+
+}*/
+
+
+function render() {
+
+  //updateSize(numScenes);
+
+  //canvas.style.transform = `translateY(${window.scrollY}px`;
+
+  renderer.setClearColor( 0xFFFFFF );
+  renderer.clear( true );
+  renderer.setClearColor( 0xE0E0E0 );
+
+  renderer.setScissorTest( true );
+  scenes.forEach( function( scene ) {
+    scene.controls.update();
+
+
+
+    // get the element that is a place holder for where we want to
+    // draw the scene
+    var element = scene.element;
+
+    // get its position relative to the page's viewport
+    rect = element.getBoundingClientRect();
+    var left = element.offsetLeft;
+    var top = element.offsetTop;
+
+
+    // check if it's offscreen. If so skip it
+    /*if ( rect.bottom < 0 || rect.top  > renderer.domElement.clientHeight ||
+       rect.right  < 0 || rect.left > renderer.domElement.clientWidth ) {
+      return;  // it's off screen
+    }*/
+
+    // set the viewport
+    var width  = rect.right - rect.left;
+    var height = rect.bottom - rect.top;
+    if (numScenes < 2 ) {
+      var bottom = top + height;
+    } else if (numScenes <= 6) {
+      var bottom = top + 2 * height;
+    } else{
+      var bottom = top + 6 * height;
+    }
+
+    //console.log(left, top, height, width);
+
+    renderer.setViewport( left, bottom, width, height );
+    renderer.setScissor( left, bottom, width, height );
+
+    //const camera = scene.camera
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+    renderer.render( scene, camera );
+
+
+  } );
+  renderer.setScissorTest( false );
+
+}
+
 function animate() {
   (async () => {onHoverPick()})()
 
+
   requestAnimationFrame(animate);
-  renderer.render(scene, camera);
-  controls.update();
+  render()
 }
 
 /**
@@ -466,17 +662,17 @@ function selectGroupOnClick() {
   }
 }
 
-window.addEventListener("mousemove", onMouseMove, false);
+/*window.addEventListener("mousemove", onMouseMove, false);
 window.addEventListener("scroll", () => {
   rect = canvas.getBoundingClientRect();
 });
-canvas.addEventListener("click", selectGroupOnClick);
+canvas.addEventListener("click", selectGroupOnClick);*/
 
 
 /**
  * Update selected group in visualisation
  */
-export function updateCurrentSelected3D() {
+export function updateCurrentSelected3DMulti() {
   let date = selectElement.options[selectElement.selectedIndex].value;
   let currentGroup = visu.groups.filter(
     (group) => group.children[0].data.date == date
@@ -484,4 +680,4 @@ export function updateCurrentSelected3D() {
   visu.selectGroup(currentGroup);
 }
 
-selectElement.addEventListener("change", updateCurrentSelected3D);
+selectElement.addEventListener("change", updateCurrentSelected3DMulti);
