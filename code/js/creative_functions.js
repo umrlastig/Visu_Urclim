@@ -52,7 +52,7 @@ export function activate_animation() {
   texture_zs.format = THREE.RedFormat;
   texture_zs.type = THREE.FloatType;
   texture_zs.unpackAlignment = 1;
-  
+
   var texture_x_center_teb = new THREE.DataTexture3D(
     general_config.data_volume_3D.data_x_center_teb,
     general_config.data_volume_3D.x_length,
@@ -62,7 +62,7 @@ export function activate_animation() {
   texture_x_center_teb.format = THREE.RedFormat;
   texture_x_center_teb.type = THREE.FloatType;
   texture_x_center_teb.unpackAlignment = 1;
-  
+
   var texture_y_center_teb = new THREE.DataTexture3D(
     general_config.data_volume_3D.data_y_center_teb,
     general_config.data_volume_3D.x_length,
@@ -72,7 +72,7 @@ export function activate_animation() {
   texture_y_center_teb.format = THREE.RedFormat;
   texture_y_center_teb.type = THREE.FloatType;
   texture_y_center_teb.unpackAlignment = 1;
-  
+
   var texture_z_center_teb = new THREE.DataTexture3D(
     general_config.data_volume_3D.data_z_center_teb,
     general_config.data_volume_3D.x_length,
@@ -5608,8 +5608,8 @@ export function create_data_texture(
 		Meso_NH est la variables stockant les informations du fichier CSV relatif au point U
 		Meso_NH est la variables stockant les informations du fichier CSV relatif au point V
 		x_length, y_length, z_length sont les dimensions de la grille de température 3D
-		
-		les variables stockées dans general_config.data_volume_3D seront passés en paramètres des shaders 
+
+		les variables stockées dans general_config.data_volume_3D seront passés en paramètres des shaders
 		"x_length": dimension de la grille de température 3D en X
         "y_length": dimension de la grille de température 3D en Y
         "z_length": dimension de la grille de température 3D en Z
@@ -5630,12 +5630,12 @@ export function create_data_texture(
 		"z_max_meso": z max pour le modèle Meso-nH
 		"data_zs_teb": liste de l'ensemble des altitudes du sol dans le modèle teb (données calculées à partir des données des netcdf en utilisant la formule de galchen), permettant de créer une datatexture 2D grâce aux dimensions x_length, y_length
 		"temp_by_id": utilisé pour la création de l'histogramme de temperatures
-		
+
 		"data_x_center_teb": ensemble des coordonnées x des centres de cellules TEB
 		"data_y_center_teb": ensemble des coordonnées y des centres de cellules TEB
 		"data_z_center_teb": ensemble des coordonnées z des centres de cellules TEB
-		
-		
+
+
 	*/
   var volume = {
     x_length: x_length,
@@ -5824,7 +5824,7 @@ export function create_data_texture(
         parseFloat(Meso_NH[t].zs);
     }
   }
-	
+
   for (var id = 2; id <= 32; id++) {
     var new_temp_by_id = { id: "Meso_" + id, temp: [] };
     for (var t = 0; t < Meso_NH.length; t++) {
@@ -5915,21 +5915,21 @@ export function create_data_texture(
       y_max = y_o + l_y / 2;
     }
   }
-  
+
   var data_x_center_teb_tab= []
   for(var n =0; n<6; n++){
 	  for (var t = 0; t < Meso_NH.length; t++) {
 		  data_x_center_teb_tab.push(Meso_NH[t].x)
 	  }
   }
-  
+
   var data_y_center_teb_tab= []
   for(var n =0; n<6; n++){
 	  for (var t = 0; t < Meso_NH.length; t++) {
 		  data_y_center_teb_tab.push(Meso_NH[t].y)
 	  }
   }
-  
+
   var data_z_center_teb_tab= []
   for (var t = 0; t < Meso_NH.length; t++) {
 	  data_z_center_teb_tab.push(data_zs_teb[t] + Meso_NH[t].tebz_1)
@@ -5949,14 +5949,14 @@ export function create_data_texture(
   for (var t = 0; t < Meso_NH.length; t++) {
 	  data_z_center_teb_tab.push(data_zs_teb[t] + Meso_NH[t].tebz_6)
   }
-  
+
 
   var data_array_32 = new Float32Array(data_array);
   var data_array_temp_32 = new Float32Array(data_array_temp);
   var data_zs_32 = new Float32Array(data_zs);
   var data_limit_teb_32 = new Float32Array(data_limit_teb);
   var data_limit_meso_32 = new Float32Array(date_limit_meso);
-  
+
   var data_x_center_teb_32 = new Float32Array(data_x_center_teb_tab);
   var data_y_center_teb_32 = new Float32Array(data_y_center_teb_tab);
   var data_z_center_teb_32 = new Float32Array(data_z_center_teb_tab);
@@ -6051,7 +6051,7 @@ export function add_remove_filtering() {
 export function calculate_avg_temperature() {
   let avg_list = [];
   general_config.netcdf_list.forEach((file) => {
-    let formatted_date = file.globalData.date.getDate() + "-" + (file.globalData.date.getMonth() + 1) + "-" +  file.globalData.date.getFullYear()+ " " + file.globalData.date.getHours() + ":" + file.globalData.date.getMinutes() + ":" + file.globalData.date.getSeconds() 
+    let formatted_date = file.globalData.date.getDate() + "-" + (file.globalData.date.getMonth() + 1) + "-" +  file.globalData.date.getFullYear()+ " " + file.globalData.date.getHours() + ":" + file.globalData.date.getMinutes() + ":" + file.globalData.date.getSeconds()
     let v = {
       date1:  new Date(file.globalData.date).getTime(),
       date : file.globalData.date,
@@ -6108,4 +6108,50 @@ export function calculate_avg_temperature() {
     return v1.date - v2.date
   })
   return avg_list;
+}
+
+
+export function calculate_point_temperature() {
+  let nbpoint = 0
+  let nbfile = 0
+  let list_point = [];
+  let list_inverse = []
+  let list_inter = []
+  general_config.netcdf_list.forEach((file) => {
+    nbfile += 1
+    let avg_list = [];
+    file.listePoints.forEach((point) => {
+      nbpoint += 1
+      let formatted_date = file.globalData.date.getDate() + "-" + (file.globalData.date.getMonth() + 1) + "-" +  file.globalData.date.getFullYear()+ " " + file.globalData.date.getHours() + ":" + file.globalData.date.getMinutes() + ":" + file.globalData.date.getSeconds()
+      let v = {
+        date1:  new Date(file.globalData.date).getTime(),
+        date : file.globalData.date,
+        dateString: formatted_date,
+        teb_1: point.teb_1 - 273.15,
+        teb_2: point.teb_2 - 273.15,
+        teb_3: point.teb_3 - 273.15,
+        teb_4: point.teb_4 - 273.15,
+        teb_5: point.teb_5 - 273.15,
+        teb_6: point.teb_6 - 273.15,
+      };
+      avg_list.push(v);
+    });
+    list_inverse.push(avg_list);
+    //console.log(list_inverse);
+  })
+  nbpoint = nbpoint / nbfile
+  console.log(list_inverse);
+  for (var i = 0; i < nbpoint; i++) {
+    list_inter = []
+    list_inverse.forEach((avg_list) => {
+      list_inter.push(avg_list[i])
+    list_inter.sort((v1, v2) => {
+      return v1.date - v2.date
+      });
+    });
+    //console.log(list_inter);
+    list_point.push(list_inter);
+
+  }
+  return list_point;
 }
