@@ -1,10 +1,10 @@
 import { calculate_avg_temperature } from "./creative_functions.js";
 import { changeNetcdf} from "./menu.js";
-import { updateCurrentSelected3D } from "./time_visualisation.js";
-
+import { updateCurrentSelected3D } from "./time_visualisation2.js";
+import { updateCurrentSelected3DMulti } from "./time_visualisation.js";
 /**
  *  Cette fonction permet de dessiner le graph 2D avec les valeurs calculer grace à la fonction calculate_avg_temperature
- *  elle permet aussi les différents intéractions 
+ *  elle permet aussi les différents intéractions
  */
 export function draw_graph2D(){
 
@@ -103,28 +103,29 @@ export function draw_graph2D(){
                 position :'bottom',
             },
             scales: {
-                yAxes: [{ 
-                    display: true, 
-                    scaleLabel: { 
-                        display: true, 
-                        labelString: 'Celsius' 
-                    }, 
- 
+                yAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Celsius'
+                    },
+
                 }]
             },
-            
+
 
         }
     });
-    // 
+    //
     document.getElementById("graphique2D").onclick = function(evt) {
         var activePoint = chart.getElementAtEvent(event);
         // make sure click was on an actual point
         if (activePoint.length > 0) {
-          var clickedElementindex = activePoint[0]._index; // recupere l'index du label 
+          var clickedElementindex = activePoint[0]._index; // recupere l'index du label
          changeNetcdf(date[clickedElementindex]); // on change les données affichées
          document.getElementById('date_control_input').options[clickedElementindex].selected = true;// on change la valeur afficher dans le menu
          updateCurrentSelected3D() // On met à jour la visu temp 3D
+         updateCurrentSelected3DMulti()
         }
       };
 }
