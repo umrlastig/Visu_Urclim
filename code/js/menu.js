@@ -27,7 +27,8 @@ import {
 
 import { init_netcdf } from "./netcdf_functions.js";
 import * as THREE from './three.module.js';
-import { updateCurrentSelected3D } from "./time_visualisation.js";
+import { updateCurrentSelected3DMulti } from "./time_visualisation.js";
+import { updateCurrentSelected3D } from "./time_visualisation2.js";
 
 
 export function initialise() {
@@ -90,7 +91,7 @@ export function initialise() {
     document
     .getElementById("temporal_animation")
     .addEventListener("change", activateTemporalAnimation);
-    
+
 
   $("#buildings_presence_input").on("click", add_hide_buildings);
   $("#buildings_print_presence_input").on("click", add_hide_buildings);
@@ -120,7 +121,7 @@ export function initialise() {
 
     // disable default action
     e.preventDefault();
-    
+
     // collect files
     const files = document.getElementById("load_data").files;
     const n = files.length;
@@ -151,11 +152,11 @@ export function initialise() {
     Promise.all(general_config.loaded).then(()=>{
       let data_to_load_list = general_config.netcdf_list[0];
       showFootprint();
-      display_footprint(carte, 
-        data_to_load_list.globalData.latitude_min, 
-        data_to_load_list.globalData.latitude_max, 
-        data_to_load_list.globalData.longitude_min, 
-        data_to_load_list.globalData.longitude_max, 
+      display_footprint(carte,
+        data_to_load_list.globalData.latitude_min,
+        data_to_load_list.globalData.latitude_max,
+        data_to_load_list.globalData.longitude_min,
+        data_to_load_list.globalData.longitude_max,
         data_to_load_list.listePoints);
       $('#data_loaded').html("Chargement réussi");
       $('#data_block').hide();
@@ -166,13 +167,13 @@ export function initialise() {
       let btn = document.getElementById("footprint_select");
       btn.addEventListener("click", () => selectfootprint(marker_front1, marker_front2,data_to_load_list));
     }).then( () => {
-      sortDate(general_config.netcdf_list,document.getElementById("date_control_input"));        
+      sortDate(general_config.netcdf_list,document.getElementById("date_control_input"));
     });
   });
 }
 
 export function showData() {
-  
+
   let dataContainer = document.getElementById("data_control_container");
   if (!dataContainer.style.height || dataContainer.style.height == "0em") {
     dataContainer.style.height = "12em";
@@ -254,8 +255,8 @@ selectElement.addEventListener("change", (event) => {
 
 /**
  * Cette fonction permet de remplir et trier la liste des dates affichée dans le panneau Data du menu.
- * @param {*} netcdfList 
- * @param {*} dateSelect 
+ * @param {*} netcdfList
+ * @param {*} dateSelect
  */
 function sortDate(netcdfList,dateSelect){
   var dateArray = new Array();
@@ -273,7 +274,7 @@ function sortDate(netcdfList,dateSelect){
 
 /**
  * This function update the data displayed on the main pannel of the app when the user change the date in the data pannel.
- * @param {*} date 
+ * @param {*} date
  */
 export function changeNetcdf(date) {
   for (let i = 0; i < general_config.netcdf_list.length; i++) {
@@ -368,8 +369,9 @@ function activateTemporalAnimation(){
         dateControl.options[index].selected = true;
         changeNetcdf(dateControl.value);
         updateCurrentSelected3D()
+        updateCurrentSelected3DMulti()
         activateTemporalAnimation();
-      }      
+      }
     },timeStep);
 }
 
@@ -625,7 +627,3 @@ function nouvelObjet() {
     general_config.id_meso_array_vertical_plane;
   return newObj;
 }
-
-
-
-
