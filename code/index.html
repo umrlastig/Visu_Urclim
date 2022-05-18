@@ -90,6 +90,9 @@
             <button id="btn_3D" class="tablinks">
               3D
             </button>
+            <button id="btn_3D_multi" class="tablinks">
+              3D Multiple
+            </button>
           </div>
 
           <!-- Tab content -->
@@ -97,7 +100,7 @@
 			  <div id="diagram2D">
 				<canvas id="graphique2D" ></canvas>
 			  </div>
-			
+
           </div>
 
           <div id="graph3D" class="tabcontent">
@@ -105,18 +108,41 @@
 				<div id="dateViewer">Date</div>
 				<canvas id="diagram3DCanvas"></canvas>
 				<fieldset id="legend-box">
-					
+
 					<legend>Axis</legend>
-				
+
 					<img class = "legend" src="images/blue.png" alt="">
 					<label >Date</label><br/>
-				
+
 					<img class = "legend" src="images/red.png" alt="">
 					<label >Niveau Teb</label><br/>
-				
+
 					<img class = "legend" src="images/green.png" alt="">
 					<label >Temperature</label><br/>
 				</fieldset>
+			  </div>
+          </div>
+
+          <div id="graph3D_multi" class="tabcontent">
+			  <div id="diagram3D_multi">
+				<canvas id="diagram3DCanvasMulti"></canvas>
+        <div id="content">
+        </div>
+        <script id="template" type="notjs">
+          <fieldset id="legend-box">
+
+            <legend>Axis</legend>
+
+            <img class = "legend" src="images/blue.png" alt="">
+            <label >Date</label><br/>
+
+            <img class = "legend" src="images/red.png" alt="">
+            <label >Niveau Teb</label><br/>
+
+            <img class = "legend" src="images/green.png" alt="">
+            <label >Temperature</label><br/>
+            </fieldset>
+        </script>
 			  </div>
           </div>
         </div>
@@ -292,12 +318,12 @@
 				<form name="planForm">
 				  <label for="discrete_plans">discrete values</label>
 				  <input type="radio" id="discrete_planes" name="planes" value="discrete" checked />
-				  
+
 				  <label for="interpolated_plans_2">interpolated values 3</label>
 				  <input type="radio" id="interpolated_planes_2" name="planes" value="interp_3" />
 				  <label for="interpolated_plans">interpolated values 2</label>
 				  <input type="radio" id="interpolated_planes_3" name="planes" value="interp_2" />
-				 
+
 				</form>
 			</div>
 
@@ -2026,7 +2052,7 @@
       uniform sampler3D u_data;
       // datatexture 2D contenant l'image utilisée pour déterminer la couleur des objets 3D
       uniform sampler2D u_cmdata;
-	  
+
 	  // datatexture 3D contenant les coordonnées xyz des centres des cellules teb
       uniform sampler3D x_center_teb;
 	  uniform sampler3D y_center_teb;
@@ -2067,10 +2093,10 @@
       //fonction fournissant une valeur de température contenue dans le cube de température 3D à partir d'une coordonnée exprimée en voxels
       float sample1(vec3 texcoords) {
       		/* Sample float value from a 3D texture. Assumes intensity data. */
-			
+
       		return texture(u_data, texcoords.xyz).r;
       }
-	  
+
 	  vec3 check_text_coord(vec3 texcoords){
 			float x_coord;
 			float y_coord;
@@ -2098,19 +2124,19 @@
 			}
 			return vec3(x_coord,y_coord,z_coord);
 	  }
-	  
+
 	  float sample_x(vec3 texcoords) {
-      		// Sample float value from a 3D texture. Assumes intensity data. 
+      		// Sample float value from a 3D texture. Assumes intensity data.
       		return texture(x_center_teb, texcoords.xyz).r;
       }
-	  
+
 	  float sample_y(vec3 texcoords) {
-      		// Sample float value from a 3D texture. Assumes intensity data. 
+      		// Sample float value from a 3D texture. Assumes intensity data.
       		return texture(y_center_teb, texcoords.xyz).r;
       }
-	  
+
 	  float sample_z(vec3 texcoords) {
-      		// Sample float value from a 3D texture. Assumes intensity data. 
+      		// Sample float value from a 3D texture. Assumes intensity data.
       		return texture(z_center_teb, texcoords.xyz).r;
       }
 
@@ -2160,21 +2186,21 @@
 		}
 		return somme1/somme2;
 	  }
-	  
-	  
+
+
 	  float average_sample_2(vec3 voxel_position, vec3 xyz_position){
 		//On cherche maintenant les points les plus proches (4 au niveau des coins)
-		
+
 		//trouver les coordonnées voxel des 8 centres TEB correspondant, en vérifier dans quel partie du voxel est le point correspondant avec les tests suivants, et en verifiant qu'on est pas déjà au bord de la grille
 		//=> du coup, peu-être ne pas faire de test sur (voxel_position[1] - float(int(voxel_position[1])))==0.5, si on est vraiment au milieu, soit on prend pas 8 points, mais 4 et on fait de la 2D, soit on tranche et on prend celui du bas/à gauche/devant
 		//prendre les positions correspondantes depuis x_center_teb, y_center_teb, z_center_teb avec les coordonnées voxel des 8 centres TEB définis plus tôt
 		//calculer la position du points avec xyz_position et cst_X, cst_Y, cst_Z
 		//calculer la température en interpolant les température rattachées aux 8 points
 		//d'abord faire un calcul de la moyenne (pondérée en fonction de la distance des 2 points au plan où est le point) en Z sur chacun des 4 segments verticaux, puis la même en y, puis la même en x
-		
+
 		// IMPORTANT: est ce que le point correspondant sera bien au milieu des 8 points définis, car c'est quand même pas des polyedre regulier..
 		//est ce que on prendra pas du coup 27 points autour? (quoique on a peut être encore le même problème).
-		
+
 		vec3 voxel_1; //coin gauche devant dessous
 		vec3 voxel_2; //coin gauche derriere dessous
 		vec3 voxel_3; //coin droit derriere dessous
@@ -2183,7 +2209,7 @@
 		vec3 voxel_6; //coin gauche derriere dessus
 		vec3 voxel_7; //coin droit derriere dessus
 		vec3 voxel_8; //coin droit devant dessus
-		
+
 		if(fract(voxel_position[0])<0.5){
 			//X partie gauche voxel
 			if(fract(voxel_position[1])<0.5){
@@ -2291,7 +2317,7 @@
 				}
 			}
 		}
-		
+
 		vec3 xyz_1 = vec3(sample_x(check_text_coord(voxel_1)/vec3(u_size[0],u_size[1],6.0)),sample_y(check_text_coord(voxel_1)/vec3(u_size[0],u_size[1],6.0)),sample_z(check_text_coord(voxel_1)/vec3(u_size[0],u_size[1],6.0))); //coin gauche devant dessous
 		vec3 xyz_2 = vec3(sample_x(check_text_coord(voxel_2)/vec3(u_size[0],u_size[1],6.0)),sample_y(check_text_coord(voxel_2)/vec3(u_size[0],u_size[1],6.0)),sample_z(check_text_coord(voxel_2)/vec3(u_size[0],u_size[1],6.0))); //coin gauche derriere dessous
 		vec3 xyz_3 = vec3(sample_x(check_text_coord(voxel_3)/vec3(u_size[0],u_size[1],6.0)),sample_y(check_text_coord(voxel_3)/vec3(u_size[0],u_size[1],6.0)),sample_z(check_text_coord(voxel_3)/vec3(u_size[0],u_size[1],6.0))); //coin droit derriere dessous
@@ -2300,7 +2326,7 @@
 		vec3 xyz_6 = vec3(sample_x(check_text_coord(voxel_6)/vec3(u_size[0],u_size[1],6.0)),sample_y(check_text_coord(voxel_6)/vec3(u_size[0],u_size[1],6.0)),sample_z(check_text_coord(voxel_6)/vec3(u_size[0],u_size[1],6.0))); //coin gauche derriere dessus
 		vec3 xyz_7 = vec3(sample_x(check_text_coord(voxel_7)/vec3(u_size[0],u_size[1],6.0)),sample_y(check_text_coord(voxel_7)/vec3(u_size[0],u_size[1],6.0)),sample_z(check_text_coord(voxel_7)/vec3(u_size[0],u_size[1],6.0))); //coin droit derriere dessus
 		vec3 xyz_8 = vec3(sample_x(check_text_coord(voxel_8)/vec3(u_size[0],u_size[1],6.0)),sample_y(check_text_coord(voxel_8)/vec3(u_size[0],u_size[1],6.0)),sample_z(check_text_coord(voxel_8)/vec3(u_size[0],u_size[1],6.0))); //coin droit devant dessus
-		
+
 		float temp_1 = sample1(check_text_coord(voxel_1)/u_size);//temperature coin gauche devant dessous
 		float temp_2 = sample1(check_text_coord(voxel_2)/u_size);//temperature coin gauche derriere dessous
 		float temp_3 = sample1(check_text_coord(voxel_3)/u_size);//temperature coin droit derriere dessous
@@ -2309,12 +2335,12 @@
 		float temp_6 = sample1(check_text_coord(voxel_6)/u_size);//temperature coin gauche derriere dessus
 		float temp_7 = sample1(check_text_coord(voxel_7)/u_size);//temperature coin droit derriere dessus
 		float temp_8 = sample1(check_text_coord(voxel_8)/u_size);//temperature coin droit devant dessus
-		
+
 		vec3 xyz_point = vec3(xyz_position[0]/cst_X,xyz_position[2]/cst_Y,xyz_position[1]/cst_Z); //coordonnées du point considéré
-		
-		
+
+
 		//moyenne sur Z
-		float temp_15; 
+		float temp_15;
 		float temp_26;
 		float temp_37;
 		float temp_48;
@@ -2346,9 +2372,9 @@
 			float poids_8 = (sqrt((xyz_point[2]-xyz_8[2])*(xyz_point[2]-xyz_8[2]))/sqrt((xyz_8[2]-xyz_4[2])*(xyz_8[2]-xyz_4[2])));
 			temp_48 = (poids_4*temp_4 + poids_8*temp_8)/(poids_4+poids_8);
 		}
-		
+
 		//moyenne sur Y
-		float temp_1526; 
+		float temp_1526;
 		float temp_3748;
 		if(xyz_1[1] == xyz_2[1]){
 			temp_1526 = temp_15;
@@ -2364,7 +2390,7 @@
 			float poids_48 = (sqrt((xyz_point[1]-xyz_4[1])*(xyz_point[1]-xyz_4[1]))/sqrt((xyz_3[1]-xyz_4[1])*(xyz_3[1]-xyz_4[1])));
 			temp_3748 = (poids_37*temp_37 + poids_48*temp_48)/(poids_37+poids_48);
 		}
-		
+
 		//moyenne sur X
 		float temp_final;
 		if(xyz_1[0] == xyz_3[0]){
@@ -2374,11 +2400,11 @@
 			float poids_3748 = (sqrt((xyz_point[0]-xyz_3[0])*(xyz_point[0]-xyz_3[0]))/sqrt((xyz_1[0]-xyz_3[0])*(xyz_1[0]-xyz_3[0])));
 			temp_final = (poids_1526*temp_1526 + poids_3748*temp_3748)/(poids_1526+poids_3748);
 		}
-		
+
 		//TEST
 		//return temp_final;
 		//return (sqrt((xyz_point[2]-xyz_1[2])*(xyz_point[2]-xyz_1[2]))/sqrt((xyz_5[2]-xyz_1[2])*(xyz_5[2]-xyz_1[2])));
-		
+
 		/*
 		float val_test = check_text_coord(voxel_1)[2];
 		if(val_test < 1.0 && val_test >= 0.0){
@@ -2426,13 +2452,13 @@
 		*/
 		return sample_z(vec3(0.5,0.5,voxel_1[2]/7.0))/1000.0;
 		// l'erreur est dans la récupération des valeurs xyz, elles n'ont aucun sens
-		//elles sont les mêmes partout et bcp plus énormes qu'elles ne devraient 
+		//elles sont les mêmes partout et bcp plus énormes qu'elles ne devraient
 		// pourtant les valeurs de voxel_1 et voxel_5, et leurs résultats renvoyés par la fonction cehcoord sont corrects
-		
+
 		//même la fonction ci-dessus renvoit tjt le même résultat
 
 	  }
-	  
+
 
       void main() {
 
@@ -2559,7 +2585,7 @@
 					  }	else if(plane_type_control == 2){
 						firstval = average_sample_2(voxel_position,v_position);
 					}
-					  
+
       					if(firstval<u_clim[0]){
       						//discard;
       						val = 0.5/6.0;
@@ -2569,7 +2595,7 @@
       					} else{
       						val = (firstval - u_clim[0])/(u_clim[1] - u_clim[0]);
       					}
-						
+
 						//TEST
 						//val=firstval;
 
@@ -2600,7 +2626,7 @@
 
       		//récupération de la couleur
       		vec4 point_color_4 = texture2D(u_cmdata, vec2(val, 0.5));
-			
+
 			vec3 point_color_3 = vec3(point_color_4[0],point_color_4[1],point_color_4[2]);
 			//vec3 point_color_3 = vec3(val,0.0,0.0);
 
